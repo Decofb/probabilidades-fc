@@ -5,6 +5,7 @@ Site estatico: abre direto no navegador e pode ser publicado de graca.
 
 from __future__ import annotations
 
+import html
 import sys
 from pathlib import Path
 
@@ -37,15 +38,17 @@ def _cor_por_pct(pct: int) -> str:
 
 
 def _melhor_aposta(j: Jogo, m: ResultadoMercados) -> tuple[str, int]:
-    """Escolhe o mercado de maior confianca (maior %) entre os principais."""
+    """
+    Destaca o mercado AFIRMATIVO de maior probabilidade. De proposito NAO inclui
+    mercados complementares triviais (Under 2.5, Ambas NAO marcam), que ficam
+    quase sempre ~100% em jogos de placar baixo e nao representam edge nenhum.
+    """
     candidatos = [
         (f"Vitória {j.mandante}", m.pct(m.vitoria_mandante)),
+        ("Empate", m.pct(m.empate)),
         (f"Vitória {j.visitante}", m.pct(m.vitoria_visitante)),
         ("Over 2.5 gols", m.pct(m.over_25)),
-        ("Under 2.5 gols", 100 - m.pct(m.over_25)),
-        ("Over 1.5 gols", m.pct(m.over_15)),
         ("Ambas marcam", m.pct(m.ambas_marcam)),
-        ("Ambas NÃO marcam", 100 - m.pct(m.ambas_marcam)),
     ]
     return max(candidatos, key=lambda c: c[1])
 
@@ -53,10 +56,15 @@ def _melhor_aposta(j: Jogo, m: ResultadoMercados) -> tuple[str, int]:
 def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
               liga_cfg: dict | None = None) -> str:
     aposta, conf = _melhor_aposta(j, m)
+    aposta = html.escape(aposta)
+    nome_m = html.escape(j.mandante)
+    nome_v = html.escape(j.visitante)
     cor_conf = _cor_por_pct(conf)
     selo = ""
     if liga_cfg:
-        selo = f'<span class="liga">{liga_cfg.get("emoji","")} {liga_cfg.get("nome","")}</span>'
+        emoji = liga_cfg.get("emoji", "")
+        nome_liga = html.escape(liga_cfg.get("nome", ""))
+        selo = f'<span class="liga">{emoji} {nome_liga}</span>'
 
     # 1X2
     pm, pe, pv = m.pct(m.vitoria_mandante), m.pct(m.empate), m.pct(m.vitoria_visitante)
@@ -91,21 +99,22 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
         html_ha = f"""
         <div class="grupo">
           <div class="grupo-tit">⚖️ Handicap Asiático</div>
-          {_barra(f"{j.mandante} ({sinal}{linha_ha})", round(ha['mandante']*100), _cor_por_pct(round(ha['mandante']*100)))}
-          {_barra(f"{j.visitante} ({'-' if linha_ha>=0 else '+'}{abs(linha_ha)})", round(ha['visitante']*100), _cor_por_pct(round(ha['visitante']*100)))}
+          {_barra(f"{nome_m} ({sinal}{linha_ha})", round(ha['mandante']*100), _cor_por_pct(round(ha['mandante']*100)))}
+          {_barra(f"{nome_v} ({'-' if linha_ha>=0 else '+'}{abs(linha_ha)})", round(ha['visitante']*100), _cor_por_pct(round(ha['visitante']*100)))}
         </div>"""
 
-    rodada = f'<span class="rodada">{j.rodada}</span>' if j.rodada else ""
+    rodada = f'<span class="rodada">{html.escape(j.rodada)}</span>' if j.rodada else ""
+    hora_safe = html.escape(j.hora or "")
 
     return f"""
     <div class="card">
       <div class="topo">
         <div class="confronto">
-          <span class="time">{j.mandante}</span>
+          <span class="time">{nome_m}</span>
           <span class="x">×</span>
-          <span class="time">{j.visitante}</span>
+          <span class="time">{nome_v}</span>
         </div>
-        <div class="meta">{selo} {j.hora} {rodada}</div>
+        <div class="meta">{selo} {hora_safe} {rodada}</div>
       </div>
 
       <div class="destaque" style="border-color:{cor_conf}">
@@ -116,9 +125,9 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
 
       <div class="grupo">
         <div class="grupo-tit">🏆 Resultado (1X2)</div>
-        {_barra(j.mandante, pm, _cor_por_pct(pm))}
+        {_barra(nome_m, pm, _cor_por_pct(pm))}
         {_barra("Empate", pe, _cor_por_pct(pe))}
-        {_barra(j.visitante, pv, _cor_por_pct(pv))}
+        {_barra(nome_v, pv, _cor_por_pct(pv))}
       </div>
 
       <div class="grupo">
@@ -136,11 +145,13 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
     </div>"""
 
 
-def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str) -> Path:
+def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
+               dados_backup: bool = False) -> Path:
     """
     grupos_data = lista ordenada de (rotulo, subtitulo, [html_card, ...]).
     Cada grupo e uma DATA (ex: rotulo='HOJE', subtitulo='quinta, 25/06').
-    Os jogos ficam separados por data, como o usuario pediu.
+    data_geracao = hora da ULTIMA COLETA COM SUCESSO (nao a hora do processo).
+    dados_backup = True quando a coleta de hoje falhou e estamos servindo CSV antigo.
     """
     secoes = ""
     for rotulo, subtitulo, cards in grupos_data:
@@ -155,6 +166,12 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str)
 
     if not secoes:
         secoes = '<p class="vazio">Nenhum jogo para hoje ou amanhã no momento.</p>'
+
+    banner = ""
+    if dados_backup:
+        banner = ('<div style="max-width:920px;margin:14px auto 0;padding:10px 14px;'
+                  'font-size:13px;color:#fff;background:#b91c1c;border-radius:10px;text-align:center">'
+                  '⚠️ DADOS DE BACKUP — a coleta de hoje não rodou; mostrando a última atualização bem-sucedida.</div>')
 
     html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -212,9 +229,10 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str)
   <header>
     <h1>⚽ Probabilidades FC</h1>
     <div class="sub">Jogos de hoje e amanhã · probabilidades por estatística · sem odds</div>
-    <div class="sub" style="font-size:11px">Atualizado em {data_geracao}</div>
+    <div class="sub" style="font-size:11px">Última coleta OK: {data_geracao}</div>
     <div class="aviso">⚠️ As porcentagens são <b>estimativas estatísticas</b> baseadas no histórico recente
       (gols, xG e escanteios). Não são garantia de resultado — futebol tem zebra. Use como apoio, com responsabilidade.</div>
+    {banner}
   </header>
   <main>{secoes}</main>
   <footer>Probabilidades FC · modelo Poisson · dados do 365scores · atualiza sozinho todo dia</footer>

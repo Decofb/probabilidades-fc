@@ -1,75 +1,66 @@
 # ⚽ Probabilidades FC
 
-Bot/site que calcula **probabilidades em %** (nunca odds) para jogos de futebol,
-a partir das estatísticas dos times. Mercados:
+Site que calcula **probabilidades em %** (nunca odds) para jogos de futebol, a
+partir das estatísticas recentes dos times. Jogos separados por **data (hoje / amanhã)**.
 
+Mercados por jogo:
 - 🏆 **Resultado (1X2)** — vitória mandante / empate / visitante
-- ⚽ **Over/Under** (1.5 e 2.5 gols) + **Ambas Marcam (BTTS)**
+- ⚽ **Gols** — +0,5 / +1,5 / +2,5 + **Ambas Marcam (BTTS)**
 - ⚖️ **Handicap Asiático**
-- ⛳ **Escanteios** (over 7.5 a 11.5)
+- ⛳ **Escanteios** (+7,5 a +11,5)
+- 🟨 **Cartões** (+2,5 a +6,5)
 
-As % saem de um **modelo Poisson** alimentado por: gols feitos/sofridos, xG/xGA e
-escanteios feitos/cedidos dos últimos jogos. **Sem odds. Sem casa de apostas.**
-
----
-
-## Como usar (todo dia)
-
-```
-python atualizar.py            # tenta buscar do FBref e gera o site
-python atualizar.py --offline  # usa só as planilhas (CSV), não tenta a internet
-```
-
-Depois abra **`site/index.html`** no navegador. (Dá pra publicar de graça — veja abaixo.)
+🌐 **No ar:** https://decofb.github.io/probabilidades-fc/
 
 ---
 
-## De onde vêm os dados
+## Como funciona
 
-| Dado | Fonte | Arquivo |
-|------|-------|---------|
-| Estatísticas dos times (gols, xG, escanteios) | FBref | `dados/<liga>_times.csv` |
-| Tabela de jogos | FIFA.com / ge.globo | `dados/<liga>_jogos.csv` |
+1. **Fonte de dados: 365scores** (API JSON pública, sem Cloudflare). Para cada
+   partida finalizada coletamos **gols, xG, escanteios e cartões** de cada time
+   (`dados/scores365.py`). Disso saem as médias por jogo (a "forma" do time).
+2. **Motor estatístico** (`motor/`):
+   - **Poisson + Dixon-Coles** para os gols → 1X2, Over/Under, BTTS, handicap.
+   - **Vantagem de casa por liga**: Brasileirão tem mando real; **Copa do Mundo é
+     campo neutro** (sem vantagem para o "mandante" do feed).
+   - **Shrinkage bayesiano**: com poucos jogos (ex.: início de Copa), a força do
+     time regride para a média da liga — evita probabilidades superconfiantes (97%/0%).
+3. **Site** (`site_gerador.py`) — HTML estático em `docs/`, agrupado por data.
+4. **Cache CSV** (`dados/*.csv`) — backup automático quando o 365scores falha.
 
-> ⚠️ **Importante sobre o FBref:** o site tem proteção Cloudflare e bloqueia robôs.
-> A busca automática pode falhar. Por isso o sistema **sempre tem um plano B**: os
-> arquivos `.csv` em `dados/`. Você (ou um agente agendado) preenche/cola os números
-> e o site funciona 100% offline. Os CSVs são editáveis no Excel.
+## Comandos
 
-### Planilha de times (`dados/<liga>_times.csv`)
 ```
-time,jogos,gols_feitos,gols_sofridos,xg,xga,esc_feitos,esc_sofridos
-Holanda,6,2.3,0.7,2.10,0.80,6.5,3.2
-```
-Todas as colunas são **médias por jogo**. `xg/xga/esc_*` são opcionais (deixe vazio se não tiver).
-
-### Planilha de jogos (`dados/<liga>_jogos.csv`)
-```
-data,hora,mandante,visitante,rodada
-2026-06-25,16:00,Tunisia,Holanda,Grupo - 3ª rodada
+python atualizar.py            # busca do 365scores, gera o site (sai !=0 se nada vier)
+python atualizar.py --offline  # usa só o cache CSV (não acessa a internet)
+python -m pytest -q            # roda a rede de testes do motor
 ```
 
----
+## Automação (já configurada)
+
+- **Agendador do Windows** → tarefa `ProbabilidadesFC` roda `atualizar.bat` todo dia 08:00.
+- O `.bat` **só publica se a coleta deu certo** (checa exit-code do Python e do `git push`).
+- Em caso de falha, o site mantém a última versão boa e exibe banner **"DADOS DE BACKUP"**;
+  o carimbo "Última coleta OK" mostra quando os dados foram de fato atualizados.
+- Log em `logs/cron.log`.
 
 ## Estrutura
 
 ```
 probabilidades-fc/
   motor/
-    poisson.py     # matemática dos mercados (1X2, O/U, BTTS, handicap, escanteios)
-    forca.py       # transforma estatística em "gols esperados" (lambda)
+    poisson.py     # Poisson + Dixon-Coles, mercados, handicap
+    forca.py       # força do time -> gols esperados (com shrinkage e mando por liga)
   dados/
-    fonte.py       # carrega stats (FBref -> CSV)
-    jogos.py       # carrega tabela de jogos (CSV)
-    *.csv          # dados das ligas
+    scores365.py   # coletor da API do 365scores (gols, xG, escanteios, cartões)
+    fonte.py       # cache CSV das estatísticas
+    jogos.py       # cache CSV dos jogos
+  tests/           # rede de segurança do motor (pytest)
   site_gerador.py  # monta o site HTML
-  atualizar.py     # >>> o comando que você roda <<<
-  site/index.html  # o site gerado
+  atualizar.py     # >>> o comando principal <<<
+  atualizar.bat    # automação diária (Agendador do Windows)
+  docs/index.html  # o site publicado (GitHub Pages)
 ```
-
-## Publicar o site (acompanhar no celular)
-O `site/index.html` é estático. É só subir a pasta `site/` em **Netlify Drop**
-(netlify.com/drop) ou **Vercel** e você tem um link pra abrir no celular todo dia.
 
 ---
 

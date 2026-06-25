@@ -1,12 +1,9 @@
 """
 Tabela de jogos (fixtures). Cada jogo: liga, data, hora, mandante, visitante.
 
-Fontes:
-  - CSV editavel {liga}_jogos.csv  -> base oficial (voce cola da FIFA.com / ge.globo)
-  - FBref schedule                 -> reforco automatico quando disponivel
-
-CSV de jogos (colunas): data, hora, mandante, visitante, rodada
-  data no formato AAAA-MM-DD
+A coleta REAL vem de dados/scores365.py (coletar_jogos_futuros). Aqui so
+salvamos/lemos o cache CSV (backup), no formato:
+  data (AAAA-MM-DD), hora, mandante, visitante, rodada
 """
 
 from __future__ import annotations
@@ -18,7 +15,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from config import PASTA_DADOS, LIGAS  # noqa: E402
+from config import PASTA_DADOS  # noqa: E402
 
 
 @dataclass
@@ -61,15 +58,3 @@ def carregar_jogos_csv(liga_key: str) -> list[Jogo]:
                 rodada=row.get("rodada", "").strip(),
             ))
     return [j for j in jogos if j.mandante and j.visitante]
-
-
-def carregar_jogos(liga_key: str) -> list[Jogo]:
-    """Por enquanto: CSV (FIFA/ge.globo). FBref schedule pode ser plugado depois."""
-    return carregar_jogos_csv(liga_key)
-
-
-def todos_os_jogos() -> list[Jogo]:
-    todos = []
-    for k in LIGAS:
-        todos.extend(carregar_jogos(k))
-    return sorted(todos, key=lambda j: (j.data, j.hora))

@@ -48,26 +48,61 @@ class EstatisticasTime:
 
 @dataclass
 class ParametrosLiga:
-    """Medias da liga inteira, base para normalizar a forca dos times."""
+    """
+    Medias da liga inteira, base para normalizar a forca dos times.
+
+    campo_neutro=True (ex: Copa do Mundo): zera a vantagem de casa, porque o
+    "mandante" do feed e arbitrario. Nesse caso media_gols_mandante e visitante
+    sao igualadas, e nenhum time ganha vantagem por estar "em casa".
+
+    peso_prior (k) controla o shrinkage: com poucos jogos a forca do time regride
+    para a media da liga. k em "numero de jogos equivalentes" do prior.
+    """
     media_gols_mandante: float = 1.45   # gols medios do mandante por jogo
     media_gols_visitante: float = 1.15  # gols medios do visitante por jogo
     media_escanteios_time: float = 5.0  # escanteios medios de um time por jogo
+    media_cartoes_time: float = 2.0     # cartoes medios de um time por jogo
+    peso_prior: float = 5.0             # k do shrinkage (jogos equivalentes)
+    campo_neutro: bool = False
+
+    def medias_gol(self) -> tuple[float, float]:
+        """(media_mandante, media_visitante) ja tratando campo neutro."""
+        if self.campo_neutro:
+            m = (self.media_gols_mandante + self.media_gols_visitante) / 2
+            return m, m
+        return self.media_gols_mandante, self.media_gols_visitante
+
+
+def _encolher(valor: float, n: int | None, prior: float, k: float) -> float:
+    """
+    Shrinkage bayesiano: combina a estatistica do time com o prior da liga,
+    ponderado pelo numero de jogos. Com n pequeno, puxa para o prior.
+        ajustado = (n*valor + k*prior) / (n + k)
+    """
+    n = max(0, n or 0)
+    return (n * valor + k * prior) / (n + k)
 
 
 def gols_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
                    liga: ParametrosLiga) -> tuple[float, float]:
     """Devolve (lambda_mandante, lambda_visitante)."""
-    media_total = (liga.media_gols_mandante + liga.media_gols_visitante) / 2
+    media_mand, media_vis = liga.medias_gol()
+    media_total = (media_mand + media_vis) / 2
+    k = liga.peso_prior
 
-    ataque_m = mandante.ataque_efetivo() / media_total
-    defesa_m = mandante.defesa_efetiva() / media_total
-    ataque_v = visitante.ataque_efetivo() / media_total
-    defesa_v = visitante.defesa_efetiva() / media_total
+    # shrinkage: ataque/defesa de cada time regridem para a media da liga
+    atk_m = _encolher(mandante.ataque_efetivo(), mandante.jogos, media_total, k)
+    def_m = _encolher(mandante.defesa_efetiva(), mandante.jogos, media_total, k)
+    atk_v = _encolher(visitante.ataque_efetivo(), visitante.jogos, media_total, k)
+    def_v = _encolher(visitante.defesa_efetiva(), visitante.jogos, media_total, k)
 
-    lam_m = liga.media_gols_mandante * ataque_m * defesa_v
-    lam_v = liga.media_gols_visitante * ataque_v * defesa_m
+    ataque_m, defesa_m = atk_m / media_total, def_m / media_total
+    ataque_v, defesa_v = atk_v / media_total, def_v / media_total
 
-    # trava de seguranca pra nao explodir com amostras pequenas
+    lam_m = media_mand * ataque_m * defesa_v
+    lam_v = media_vis * ataque_v * defesa_m
+
+    # ultima rede de seguranca (nao deve mais ser atingida com shrinkage)
     lam_m = max(0.15, min(lam_m, 5.0))
     lam_v = max(0.15, min(lam_v, 5.0))
     return lam_m, lam_v
@@ -84,23 +119,33 @@ def escanteios_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime
         return None
 
     media = liga.media_escanteios_time
+    k = liga.peso_prior
+
+    # estatisticas encolhidas para a media da liga (amostra pequena -> media)
+    mf = _encolher(mandante.escanteios_feitos_por_jogo, mandante.jogos, media, k)
+    ms = _encolher(mandante.escanteios_sofridos_por_jogo or media, mandante.jogos, media, k)
+    vf = _encolher(visitante.escanteios_feitos_por_jogo, visitante.jogos, media, k)
+    vs = _encolher(visitante.escanteios_sofridos_por_jogo or media, visitante.jogos, media, k)
 
     # escanteios do mandante = media entre (o que ele obtem) e (o que o visitante cede)
-    esc_m = (mandante.escanteios_feitos_por_jogo +
-             (visitante.escanteios_sofridos_por_jogo or media)) / 2
-    esc_v = (visitante.escanteios_feitos_por_jogo +
-             (mandante.escanteios_sofridos_por_jogo or media)) / 2
+    esc_m = (mf + vs) / 2
+    esc_v = (vf + ms) / 2
 
     total = esc_m + esc_v
     return max(4.0, min(total, 16.0))
 
 
-def cartoes_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime) -> float | None:
+def cartoes_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
+                      liga: ParametrosLiga) -> float | None:
     """
     Total de cartoes esperados na partida = cartoes que cada time costuma
-    receber por jogo, somados. Simples e estavel.
+    receber por jogo, somados (com shrinkage para a media da liga).
     """
     if mandante.cartoes_por_jogo is None or visitante.cartoes_por_jogo is None:
         return None
-    total = mandante.cartoes_por_jogo + visitante.cartoes_por_jogo
+    media = liga.media_cartoes_time
+    k = liga.peso_prior
+    cm = _encolher(mandante.cartoes_por_jogo, mandante.jogos, media, k)
+    cv = _encolher(visitante.cartoes_por_jogo, visitante.jogos, media, k)
+    total = cm + cv
     return max(1.0, min(total, 12.0))

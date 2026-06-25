@@ -66,12 +66,40 @@ class ResultadoMercados:
         return round(valor * 100)
 
 
-def matriz_placares(lam_mandante: float, lam_visitante: float, max_gols: int = 10):
-    """Matriz de probabilidade de cada placar (i gols mandante, j gols visitante)."""
+# Parametro de correlacao de Dixon-Coles. Negativo aumenta placares 0-0/1-1
+# (empates) e reduz 1-0/0-1, corrigindo o vies do Poisson independente puro.
+RHO_DIXON_COLES = -0.06
+
+
+def _tau_dixon_coles(i: int, j: int, lam_m: float, lam_v: float, rho: float) -> float:
+    """Fator de correcao aplicado aos quatro placares baixos."""
+    if i == 0 and j == 0:
+        return 1.0 - lam_m * lam_v * rho
+    if i == 0 and j == 1:
+        return 1.0 + lam_m * rho
+    if i == 1 and j == 0:
+        return 1.0 + lam_v * rho
+    if i == 1 and j == 1:
+        return 1.0 - rho
+    return 1.0
+
+
+def matriz_placares(lam_mandante: float, lam_visitante: float, max_gols: int = 10,
+                    rho: float = RHO_DIXON_COLES):
+    """
+    Matriz de probabilidade de cada placar (i gols mandante, j gols visitante),
+    com correcao de Dixon-Coles nos placares baixos e renormalizada para somar 1.
+    """
     p_mandante = [poisson_pmf(i, lam_mandante) for i in range(max_gols + 1)]
     p_visitante = [poisson_pmf(j, lam_visitante) for j in range(max_gols + 1)]
-    matriz = [[p_mandante[i] * p_visitante[j] for j in range(max_gols + 1)]
+    matriz = [[p_mandante[i] * p_visitante[j]
+               * _tau_dixon_coles(i, j, lam_mandante, lam_visitante, rho)
+               for j in range(max_gols + 1)]
               for i in range(max_gols + 1)]
+
+    total = sum(sum(linha) for linha in matriz)
+    if total > 0:
+        matriz = [[c / total for c in linha] for linha in matriz]
     return matriz
 
 

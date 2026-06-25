@@ -3,3 +3,6 @@ __pycache__/
 cache/
 logs/
 .env
+downloaded_files/
+site/
+.pytest_cache/

@@ -22,16 +22,17 @@ from datetime import datetime, timedelta, timezone
 
 from unidecode import unidecode
 
-from config import LIGAS
+from config import LIGAS, PASTA_SITE, parametros_da_liga
 from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
                              coletar_jogos_futuros)
 from dados.fonte import salvar_times_csv, carregar_times_csv
 from dados.jogos import salvar_jogos_csv, carregar_jogos_csv
-from motor.forca import (EstatisticasTime, ParametrosLiga,
+from motor.forca import (EstatisticasTime,
                          gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
 from site_gerador import card_jogo, gerar_site
 
+FUSO_BR = timezone(timedelta(hours=-3))
 DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
 DIAS_FRENTE = 3       # foco em hoje e amanha (+1 de folga)
 
@@ -41,18 +42,28 @@ def normalizar(nome: str) -> str:
 
 
 def achar_time(nome: str, times: dict[str, EstatisticasTime]) -> EstatisticasTime | None:
+    """
+    Casa o nome do jogo com o nome do time nas estatisticas. Prioriza match
+    EXATO normalizado. Para aproximacao, exige UNICIDADE: se mais de um time
+    casa, devolve None e avisa (melhor pular do que usar o time errado, ex.:
+    'America' casando America-MG vs America-RN, ou 'Atletico' MG/GO/PR).
+    """
+    import difflib
+
     alvo = normalizar(nome)
-    for t in times.values():
-        if normalizar(t.nome) == alvo:
-            return t
-    for t in times.values():
-        n = normalizar(t.nome)
-        if alvo in n or n in alvo:
-            return t
-    palavra = alvo.split()[0] if alvo.split() else alvo
-    for t in times.values():
-        if palavra and palavra in normalizar(t.nome):
-            return t
+    por_norm = {normalizar(t.nome): t for t in times.values()}
+
+    # 1) match exato normalizado
+    if alvo in por_norm:
+        return por_norm[alvo]
+
+    # 2) match aproximado, mas SO se for unico (cutoff alto)
+    candidatos = difflib.get_close_matches(alvo, list(por_norm), n=3, cutoff=0.82)
+    if len(candidatos) == 1:
+        return por_norm[candidatos[0]]
+    if len(candidatos) > 1:
+        print(f"  ! nome ambiguo '{nome}' casa {candidatos} — pulado por seguranca")
+        return None
     return None
 
 
@@ -60,11 +71,13 @@ def arredondar_meio(x: float) -> float:
     return round(x * 2) / 2
 
 
-def obter_dados(liga_key: str, offline: bool):
-    """Devolve (times, jogos) buscando do 365scores ou caindo no CSV."""
+def obter_dados(liga_key: str, offline: bool, hoje):
+    """
+    Devolve (times, jogos, online_ok). 'hoje' e um date em BRT (mesma referencia
+    do filtro de exibicao). online_ok=True so se a coleta no 365scores funcionou.
+    """
     comp = COMPETICOES_365.get(liga_key)
     if not offline and comp:
-        hoje = datetime.now()
         d1 = (hoje - timedelta(days=DIAS_HISTORICO)).strftime("%d/%m/%Y")
         d2 = hoje.strftime("%d/%m/%Y")
         d_frente = (hoje + timedelta(days=DIAS_FRENTE)).strftime("%d/%m/%Y")
@@ -76,14 +89,14 @@ def obter_dados(liga_key: str, offline: bool):
             if jogos:
                 salvar_jogos_csv(liga_key, jogos)
             print(f"  [365scores OK] {len(times)} times · {len(jogos)} jogos futuros")
-            return times, jogos
+            return times, jogos, True
         except Exception as e:
             print(f"  [365scores falhou: {type(e).__name__}] usando CSV salvo")
 
     times = carregar_times_csv(liga_key)
     jogos = carregar_jogos_csv(liga_key)
     print(f"  [CSV] {len(times)} times · {len(jogos)} jogos")
-    return times, jogos
+    return times, jogos, False
 
 
 DIAS_SEMANA = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
@@ -101,25 +114,50 @@ def rotulo_data(data_str: str, hoje):
     return sub.split(",")[0].capitalize(), d.strftime("%d/%m")
 
 
-def main(offline: bool = False) -> None:
-    fuso_br = timezone(timedelta(hours=-3))
-    agora_dt = datetime.now(fuso_br)
+# tempo de jogo: depois disso consideramos a partida encerrada e tiramos do site
+DURACAO_JOGO_H = 2.5
+
+
+def jogo_relevante(j, agora_dt) -> bool:
+    """True se o jogo ainda nao acabou (mostra hoje/amanha; some quando termina)."""
+    if not j.data:
+        return False
+    try:
+        quando = datetime.strptime(f"{j.data} {j.hora}", "%Y-%m-%d %H:%M")
+        quando = quando.replace(tzinfo=agora_dt.tzinfo)
+    except ValueError:
+        # sem hora valida: mantem o dia todo (fallback conservador)
+        try:
+            d = datetime.strptime(j.data, "%Y-%m-%d").date()
+        except ValueError:
+            return False
+        return d >= agora_dt.date()
+    return quando >= agora_dt - timedelta(hours=DURACAO_JOGO_H)
+
+
+ARQ_ULTIMO_SUCESSO = PASTA_SITE / "ultima_coleta.txt"
+
+
+def main(offline: bool = False) -> int:
+    """Devolve um codigo de saida: 0 ok, 2 se nao produziu nenhum jogo."""
+    agora_dt = datetime.now(FUSO_BR)
     agora = agora_dt.strftime("%d/%m/%Y %H:%M")
     hoje = agora_dt.date()
     print(f"\n=== Atualizando Probabilidades FC ({agora}) ===\n")
 
-    liga_params = ParametrosLiga()
     # junta TODOS os jogos de todas as ligas, com sua data/hora, p/ separar por data
     por_data: dict[str, list[tuple[str, str]]] = {}  # data -> [(hora, card_html)]
+    alguma_online = False
 
     for liga_key in LIGAS:
         print(f"[{LIGAS[liga_key]['nome']}]")
-        times, jogos = obter_dados(liga_key, offline)
+        liga_params = parametros_da_liga(liga_key)
+        times, jogos, online_ok = obter_dados(liga_key, offline, hoje)
+        alguma_online = alguma_online or online_ok
 
         calc = 0
         for j in jogos:
-            # so hoje e amanha em diante; ignora datas passadas
-            if j.data < hoje.strftime("%Y-%m-%d"):
+            if not jogo_relevante(j, agora_dt):  # ignora passados/encerrados
                 continue
             tm = achar_time(j.mandante, times)
             tv = achar_time(j.visitante, times)
@@ -130,7 +168,7 @@ def main(offline: bool = False) -> None:
 
             lam_m, lam_v = gols_esperados(tm, tv, liga_params)
             esc = escanteios_esperados(tm, tv, liga_params)
-            cart = cartoes_esperados(tm, tv)
+            cart = cartoes_esperados(tm, tv, liga_params)
             mercados = calcular_mercados(lam_m, lam_v, lam_escanteios=esc, lam_cartoes=cart)
 
             margem = arredondar_meio(lam_m - lam_v)
@@ -149,11 +187,24 @@ def main(offline: bool = False) -> None:
         cards = [c for _, c in sorted(por_data[data_str])]  # ordena por horario
         grupos.append((rotulo, sub, cards))
 
-    destino = gerar_site(grupos, agora)
     total = sum(len(c) for _, _, c in grupos)
+
+    # carimbo honesto: "ultima coleta com SUCESSO" (so atualiza se veio dado online)
+    if alguma_online and total > 0:
+        ARQ_ULTIMO_SUCESSO.write_text(agora, encoding="utf-8")
+    ultima_coleta = (ARQ_ULTIMO_SUCESSO.read_text(encoding="utf-8").strip()
+                     if ARQ_ULTIMO_SUCESSO.exists() else agora)
+    dados_backup = not (alguma_online and total > 0)
+
+    destino = gerar_site(grupos, ultima_coleta, dados_backup=dados_backup)
     print(f"=== Pronto! {total} jogos no site, separados em {len(grupos)} data(s) ===")
     print(f"Abra: {destino}")
 
+    if total == 0:
+        print("!! NENHUM jogo calculado - coleta falhou ou sem jogos. (exit 2)")
+        return 2
+    return 0
+
 
 if __name__ == "__main__":
-    main(offline="--offline" in sys.argv)
+    sys.exit(main(offline="--offline" in sys.argv))

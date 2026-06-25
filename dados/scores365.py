@@ -3,16 +3,17 @@ Coletor de dados do 365scores (API JSON publica).
 
 Vantagem sobre o FBref: nao tem Cloudflare e entrega POR PARTIDA:
   - gols (placar)
-  - xG / Gols esperados  (id 76)
-  - escanteios           (id 8)
+  - xG / Gols esperados      (id 76)
+  - escanteios               (id 8)
+  - cartoes amarelos/vermelhos (id 1 / id 2)
   - posse, chutes, etc.
 
 Com isso montamos, pra cada time, as medias por jogo de:
-  gols feitos/sofridos, xG/xGA, escanteios feitos/sofridos.
+  gols feitos/sofridos, xG/xGA, escanteios feitos/sofridos e cartoes recebidos.
 
 Endpoints usados:
   GET /web/games/         -> lista de jogos de um periodo (placar + status)
-  GET /web/game/stats/    -> estatisticas detalhadas de uma partida (xG, escanteios)
+  GET /web/game/stats/    -> estatisticas da partida (xG, escanteios, cartoes)
 """
 
 from __future__ import annotations
@@ -66,7 +67,7 @@ def listar_jogos(comp_id: int, d1: str, d2: str) -> list[dict]:
 def stats_partida(game_id: int) -> dict[int, dict[int, float]]:
     """
     Estatisticas de uma partida: {competitorId: {stat_id: valor}}.
-    So xG e escanteios nos interessam.
+    Filtra so o que o modelo usa: xG, escanteios e cartoes.
     """
     d = _get("game/stats", games=game_id)
     relevantes = (STAT_XG, STAT_ESCANTEIOS, STAT_CARTAO_AMARELO, STAT_CARTAO_VERMELHO)
