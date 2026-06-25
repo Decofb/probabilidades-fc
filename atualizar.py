@@ -27,6 +27,7 @@ from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
                              coletar_jogos_futuros)
 from dados.fonte import salvar_times_csv, carregar_times_csv
 from dados.jogos import salvar_jogos_csv, carregar_jogos_csv
+from dados.registro import registrar, id_jogo
 from motor.forca import (EstatisticasTime,
                          gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
@@ -145,8 +146,19 @@ def main(offline: bool = False) -> int:
     hoje = agora_dt.date()
     print(f"\n=== Atualizando Probabilidades FC ({agora}) ===\n")
 
+    # 1) concilia previsoes anteriores com o resultado real (so online)
+    if not offline:
+        try:
+            from conferir import conferir_pendentes
+            n_conf = conferir_pendentes(hoje)
+            if n_conf:
+                print(f"[log: {n_conf} previsoes anteriores conferidas]\n")
+        except Exception as e:
+            print(f"[log: conferir falhou: {type(e).__name__}]\n")
+
     # junta TODOS os jogos de todas as ligas, com sua data/hora, p/ separar por data
     por_data: dict[str, list[tuple[str, str]]] = {}  # data -> [(hora, card_html)]
+    previsoes_log: list[dict] = []
     alguma_online = False
 
     for liga_key in LIGAS:
@@ -180,8 +192,28 @@ def main(offline: bool = False) -> int:
 
             card = card_jogo(j, mercados, ha, linha_ha, LIGAS[liga_key])
             por_data.setdefault(j.data, []).append((j.hora, card))
+
+            def _r4(x):
+                return round(x, 4)
+            previsoes_log.append({
+                "id": id_jogo(j.data, j.mandante, j.visitante),
+                "registrado_em": agora, "liga": liga_key, "data": j.data, "hora": j.hora,
+                "mandante": j.mandante, "visitante": j.visitante,
+                "p1": _r4(mercados.vitoria_mandante), "px": _r4(mercados.empate),
+                "p2": _r4(mercados.vitoria_visitante),
+                "po05": _r4(mercados.over_05), "po15": _r4(mercados.over_15),
+                "po25": _r4(mercados.over_25), "pbtts": _r4(mercados.ambas_marcam),
+                "pesc95": _r4(mercados.escanteios.get("over_9_5", 0)) if mercados.escanteios else "",
+                "pcart45": _r4(mercados.cartoes.get("over_4_5", 0)) if mercados.cartoes else "",
+                "status": "previsto",
+            })
             calc += 1
         print(f"  -> {calc} jogos calculados\n")
+
+    # 2) grava as previsoes de hoje no log (so online, p/ nao poluir com reruns offline)
+    if not offline and previsoes_log:
+        n = registrar(previsoes_log)
+        print(f"[log: {n} previsoes de hoje registradas]\n")
 
     # monta os grupos por data, em ordem cronologica, com rotulo HOJE/AMANHÃ
     grupos = []
