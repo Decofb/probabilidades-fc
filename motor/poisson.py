@@ -103,12 +103,31 @@ def matriz_placares(lam_mandante: float, lam_visitante: float, max_gols: int = 1
     return matriz
 
 
-def _over_lines(lam: float, linhas) -> dict[str, float]:
-    """P(total > linha) para cada linha X.5, via Poisson com media lam."""
+def nbinom_pmf(k: int, media: float, r: float) -> float:
+    """
+    Binomial Negativa parametrizada por media (mu) e dispersao r.
+    Variancia = mu + mu^2/r  ->  r grande aproxima Poisson; r pequeno = mais cauda.
+    Usada para escanteios/cartoes, que sao sobredispersos (Poisson erra as caudas).
+    """
+    from math import lgamma, log, exp
+    if media <= 0 or r <= 0:
+        return 1.0 if k == 0 else 0.0
+    p = r / (r + media)
+    return exp(lgamma(k + r) - lgamma(r) - lgamma(k + 1) + r * log(p) + k * log(1 - p))
+
+
+def _over_lines(lam: float, linhas, dispersao: float | None = None) -> dict[str, float]:
+    """
+    P(total > linha) para cada linha X.5. Poisson por padrao; Binomial Negativa
+    quando 'dispersao' (r) e informada (melhor para escanteios/cartoes).
+    """
     out = {}
     for linha in linhas:
         limite = int(linha)  # linha 9.5 -> over se total >= 10
-        acumulado = sum(poisson_pmf(k, lam) for k in range(0, limite + 1))
+        if dispersao is not None and dispersao > 0:
+            acumulado = sum(nbinom_pmf(k, lam, dispersao) for k in range(0, limite + 1))
+        else:
+            acumulado = sum(poisson_pmf(k, lam) for k in range(0, limite + 1))
         out[f"over_{str(linha).replace('.', '_')}"] = 1.0 - acumulado
     return out
 
