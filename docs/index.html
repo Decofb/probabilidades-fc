@@ -42,6 +42,12 @@
   .backup { max-width:680px; margin:14px auto 0; padding:9px 14px; border-radius:10px; text-align:center;
     font-size:12.5px; color:#ffdada; background:rgba(220,40,40,.12); border:1px solid rgba(220,40,40,.35); }
 
+  .nav { display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }
+  .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
+  .nav a:hover { border-color:var(--em); color:var(--bone); }
+
   main { max-width:1000px; margin:0 auto; padding:6px 16px 84px; }
 
   .daymark { display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
@@ -120,6 +126,7 @@
 </style>
 </head>
 <body>
+  <nav class="nav"><a class="on" href="index.html">⚽ Jogos</a><a href="tendencias.html">📊 Tendências</a></nav>
   <header>
     <div class="brand"><img class="logo-full" src="logo.png" alt="Probabilidades FC"></div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
@@ -127,7 +134,7 @@
     <div class="nota">Mostramos só os mercados validados por backtest (resultado, gols e ambas marcam) —
       escanteios e cartões saíram porque não superaram o palpite médio nos testes. As porcentagens são
       estimativas estatísticas (gols e xG do histórico recente); não são garantia — futebol tem zebra. Aposte com responsabilidade.</div>
-    
+    <div class="backup">Dados de backup — a coleta de hoje não rodou; mostrando a última atualização bem-sucedida.</div>
   </header>
   <main>
       <section>

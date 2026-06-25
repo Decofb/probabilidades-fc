@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Tendências · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root { --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }
+  .nav { display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }
+  .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
+  .nav a:hover { border-color:var(--em); color:var(--bone); }
+  header { text-align:center; padding:28px 18px 6px; }
+  header h1 { margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }
+  header .sub { margin-top:8px; font-size:13px; color:var(--mut); }
+  header .ts { margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }
+  main { max-width:1120px; margin:0 auto; padding:10px 16px 80px; }
+  .liga-sec { margin-top:32px; }
+  .liga-sec h2 { display:flex; align-items:baseline; gap:10px; font-family:'Space Grotesk',sans-serif;
+    font-size:20px; font-weight:700; border-bottom:1px solid var(--line2); padding-bottom:12px; margin:0; }
+  .liga-n { margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint);
+    font-weight:400; letter-spacing:.5px; }
+  .ambiente { display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 4px; }
+  .stat { flex:1; min-width:90px; padding:11px 12px; border:1px solid var(--line); border-radius:12px;
+    background:var(--panel2); text-align:center; }
+  .stat-v { display:block; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:var(--em); }
+  .stat-l { display:block; font-size:9.5px; color:var(--mut); text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }
+  .ranks { display:grid; grid-template-columns:1fr; gap:13px; margin-top:16px; }
+  @media(min-width:620px) { .ranks { grid-template-columns:1fr 1fr; } }
+  @media(min-width:980px) { .ranks { grid-template-columns:1fr 1fr 1fr 1fr; } }
+  .rcard { border:1px solid var(--line); border-radius:var(--r); padding:13px 14px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); }
+  .eyebrow { display:flex; flex-direction:column; gap:3px; margin-bottom:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--bone); }
+  .eyebrow-x { color:var(--faint); font-size:9px; letter-spacing:.2px; text-transform:none; }
+  .rk { list-style:none; margin:0; padding:0; }
+  .rk li { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 0;
+    border-top:1px solid var(--line2); font-size:12.5px; }
+  .rk li:first-child { border-top:none; }
+  .rk-n { color:#c2cdda; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .rk-v { font-family:'IBM Plex Mono',monospace; color:var(--em); font-variant-numeric:tabular-nums; }
+  .vazio { text-align:center; color:var(--mut); margin-top:60px; }
+  .nota { max-width:760px; margin:18px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
+    border-left:2px solid var(--em); padding-left:13px; }
+  footer { text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }
+  footer b { color:var(--em); }
+</style>
+</head>
+<body>
+  <nav class="nav"><a href="index.html">⚽ Jogos</a><a class="on" href="tendencias.html">📊 Tendências</a></nav>
+  <header>
+    <h1>📊 Tendências</h1>
+    <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
+    <div class="ts">xG · regressão à média · atualizado 25/06/2026 16:50</div>
+    <div class="nota">Como ler: <b>xG</b> mostra a qualidade real das chances. Um time <b>azarado</b>
+      (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
+      É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
+  </header>
+  <main>
+      <section class="liga-sec">
+        <h2><span>🌍</span> Copa do Mundo 2026
+            <span class="liga-n">56 jogos disputados</span></h2>
+        <div class="ambiente"><div class="stat"><span class="stat-v">2.93</span><span class="stat-l">Gols/jogo</span></div><div class="stat"><span class="stat-v">52%</span><span class="stat-l">Casa</span></div><div class="stat"><span class="stat-v">27%</span><span class="stat-l">Empate</span></div><div class="stat"><span class="stat-v">21%</span><span class="stat-l">Fora</span></div><div class="stat"><span class="stat-v">54%</span><span class="stat-l">Over 2.5</span></div><div class="stat"><span class="stat-v">52%</span><span class="stat-l">Ambas</span></div><div class="stat"><span class="stat-v">8.5</span><span class="stat-l">Escanteios</span></div><div class="stat"><span class="stat-v">2.4</span><span class="stat-l">Cartões</span></div></div>
+        <div class="ranks"></div>
+      </section>
+      <section class="liga-sec">
+        <h2><span>🇧🇷</span> Brasileirão Série A
+            <span class="liga-n">205 jogos disputados</span></h2>
+        <div class="ambiente"><div class="stat"><span class="stat-v">2.74</span><span class="stat-l">Gols/jogo</span></div><div class="stat"><span class="stat-v">50%</span><span class="stat-l">Casa</span></div><div class="stat"><span class="stat-v">26%</span><span class="stat-l">Empate</span></div><div class="stat"><span class="stat-v">24%</span><span class="stat-l">Fora</span></div><div class="stat"><span class="stat-v">52%</span><span class="stat-l">Over 2.5</span></div><div class="stat"><span class="stat-v">56%</span><span class="stat-l">Ambas</span></div><div class="stat"><span class="stat-v">9.9</span><span class="stat-l">Escanteios</span></div><div class="stat"><span class="stat-v">4.9</span><span class="stat-l">Cartões</span></div></div>
+        <div class="ranks"><div class="rcard"><div class="eyebrow">⚔️ Melhor ataque<span class="eyebrow-x">xG criado/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Flamengo</span><span class="rk-v">1.60</span></li><li><span class="rk-n">2. RB Bragantino</span><span class="rk-v">1.51</span></li><li><span class="rk-n">3. Bahia</span><span class="rk-v">1.47</span></li><li><span class="rk-n">4. Fluminense</span><span class="rk-v">1.46</span></li><li><span class="rk-n">5. Internacional</span><span class="rk-v">1.45</span></li></ol></div><div class="rcard"><div class="eyebrow">🛡️ Melhor defesa<span class="eyebrow-x">xG sofrido/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Athletico-PR</span><span class="rk-v">0.92</span></li><li><span class="rk-n">2. RB Bragantino</span><span class="rk-v">0.98</span></li><li><span class="rk-n">3. Palmeiras</span><span class="rk-v">0.99</span></li><li><span class="rk-n">4. Fluminense</span><span class="rk-v">1.01</span></li><li><span class="rk-n">5. Flamengo</span><span class="rk-v">1.04</span></li></ol></div><div class="rcard"><div class="eyebrow">🍀 Azarados<span class="eyebrow-x">marcam menos que o xG · tendem a subir</span></div><ol class="rk"><li><span class="rk-n">1. Internacional</span><span class="rk-v">-0.26</span></li><li><span class="rk-n">2. Vasco da Gama</span><span class="rk-v">-0.14</span></li><li><span class="rk-n">3. Mirassol</span><span class="rk-v">-0.11</span></li><li><span class="rk-n">4. Bahia</span><span class="rk-v">-0.07</span></li><li><span class="rk-n">5. Chapecoense</span><span class="rk-v">-0.06</span></li></ol></div><div class="rcard"><div class="eyebrow">🎲 Sortudos<span class="eyebrow-x">marcam mais que o xG · tendem a cair</span></div><ol class="rk"><li><span class="rk-n">1. Botafogo</span><span class="rk-v">+0.76</span></li><li><span class="rk-n">2. Palmeiras</span><span class="rk-v">+0.69</span></li><li><span class="rk-n">3. Santos</span><span class="rk-v">+0.37</span></li><li><span class="rk-n">4. Fluminense</span><span class="rk-v">+0.35</span></li><li><span class="rk-n">5. Coritiba</span><span class="rk-v">+0.33</span></li></ol></div><div class="rcard"><div class="eyebrow">🔥 Mais over<span class="eyebrow-x">gols totais/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Botafogo</span><span class="rk-v">3.80</span></li><li><span class="rk-n">2. Vasco da Gama</span><span class="rk-v">3.05</span></li><li><span class="rk-n">3. Santos</span><span class="rk-v">3.05</span></li><li><span class="rk-n">4. Fluminense</span><span class="rk-v">2.95</span></li><li><span class="rk-n">5. Chapecoense</span><span class="rk-v">2.94</span></li></ol></div><div class="rcard"><div class="eyebrow">🧱 Ferrolho<span class="eyebrow-x">menos gols totais/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Corinthians</span><span class="rk-v">2.19</span></li><li><span class="rk-n">2. Athletico-PR</span><span class="rk-v">2.33</span></li><li><span class="rk-n">3. Grêmio</span><span class="rk-v">2.50</span></li><li><span class="rk-n">4. Palmeiras</span><span class="rk-v">2.50</span></li><li><span class="rk-n">5. São Paulo</span><span class="rk-v">2.52</span></li></ol></div><div class="rcard"><div class="eyebrow">🟨 Mais cartões<span class="eyebrow-x">recebidos/jogo</span></div><ol class="rk"><li><span class="rk-n">1. RB Bragantino</span><span class="rk-v">3.1</span></li><li><span class="rk-n">2. Santos</span><span class="rk-v">3.0</span></li><li><span class="rk-n">3. Botafogo</span><span class="rk-v">3.0</span></li><li><span class="rk-n">4. Mirassol</span><span class="rk-v">2.8</span></li><li><span class="rk-n">5. Flamengo</span><span class="rk-v">2.7</span></li></ol></div><div class="rcard"><div class="eyebrow">🏰 Fortes em casa<span class="eyebrow-x">% de vitória em casa</span></div><ol class="rk"><li><span class="rk-n">1. Fluminense</span><span class="rk-v">82%</span></li><li><span class="rk-n">2. Vitória</span><span class="rk-v">80%</span></li><li><span class="rk-n">3. Palmeiras</span><span class="rk-v">78%</span></li><li><span class="rk-n">4. Athletico-PR</span><span class="rk-v">70%</span></li><li><span class="rk-n">5. São Paulo</span><span class="rk-v">67%</span></li></ol></div></div>
+      </section>
+      <section class="liga-sec">
+        <h2><span>🥈</span> Brasileirão Série B
+            <span class="liga-n">140 jogos disputados</span></h2>
+        <div class="ambiente"><div class="stat"><span class="stat-v">2.31</span><span class="stat-l">Gols/jogo</span></div><div class="stat"><span class="stat-v">37%</span><span class="stat-l">Casa</span></div><div class="stat"><span class="stat-v">31%</span><span class="stat-l">Empate</span></div><div class="stat"><span class="stat-v">31%</span><span class="stat-l">Fora</span></div><div class="stat"><span class="stat-v">43%</span><span class="stat-l">Over 2.5</span></div><div class="stat"><span class="stat-v">49%</span><span class="stat-l">Ambas</span></div><div class="stat"><span class="stat-v">10.3</span><span class="stat-l">Escanteios</span></div><div class="stat"><span class="stat-v">5.5</span><span class="stat-l">Cartões</span></div></div>
+        <div class="ranks"><div class="rcard"><div class="eyebrow">⚔️ Melhor ataque<span class="eyebrow-x">xG criado/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Atlético-GO</span><span class="rk-v">1.82</span></li><li><span class="rk-n">2. Náutico</span><span class="rk-v">1.53</span></li><li><span class="rk-n">3. Sport Recife</span><span class="rk-v">1.46</span></li><li><span class="rk-n">4. Novorizontino</span><span class="rk-v">1.40</span></li><li><span class="rk-n">5. Goiás</span><span class="rk-v">1.27</span></li></ol></div><div class="rcard"><div class="eyebrow">🛡️ Melhor defesa<span class="eyebrow-x">xG sofrido/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Cuiabá</span><span class="rk-v">0.89</span></li><li><span class="rk-n">2. Botafogo-SP</span><span class="rk-v">0.91</span></li><li><span class="rk-n">3. Criciúma</span><span class="rk-v">0.97</span></li><li><span class="rk-n">4. Juventude</span><span class="rk-v">1.00</span></li><li><span class="rk-n">5. Novorizontino</span><span class="rk-v">1.02</span></li></ol></div><div class="rcard"><div class="eyebrow">🍀 Azarados<span class="eyebrow-x">marcam menos que o xG · tendem a subir</span></div><ol class="rk"><li><span class="rk-n">1. Atlético-GO</span><span class="rk-v">-0.68</span></li><li><span class="rk-n">2. América-MG</span><span class="rk-v">-0.36</span></li><li><span class="rk-n">3. Goiás</span><span class="rk-v">-0.34</span></li><li><span class="rk-n">4. Cuiabá</span><span class="rk-v">-0.34</span></li><li><span class="rk-n">5. Ponte Preta</span><span class="rk-v">-0.32</span></li></ol></div><div class="rcard"><div class="eyebrow">🎲 Sortudos<span class="eyebrow-x">marcam mais que o xG · tendem a cair</span></div><ol class="rk"><li><span class="rk-n">1. Vila Nova</span><span class="rk-v">+0.45</span></li><li><span class="rk-n">2. CRB</span><span class="rk-v">+0.42</span></li><li><span class="rk-n">3. Londrina</span><span class="rk-v">+0.31</span></li><li><span class="rk-n">4. Avaí</span><span class="rk-v">+0.20</span></li><li><span class="rk-n">5. Novorizontino</span><span class="rk-v">+0.18</span></li></ol></div><div class="rcard"><div class="eyebrow">🔥 Mais over<span class="eyebrow-x">gols totais/jogo</span></div><ol class="rk"><li><span class="rk-n">1. CRB</span><span class="rk-v">3.36</span></li><li><span class="rk-n">2. Náutico</span><span class="rk-v">2.79</span></li><li><span class="rk-n">3. Londrina</span><span class="rk-v">2.79</span></li><li><span class="rk-n">4. Vila Nova</span><span class="rk-v">2.64</span></li><li><span class="rk-n">5. Ponte Preta</span><span class="rk-v">2.64</span></li></ol></div><div class="rcard"><div class="eyebrow">🧱 Ferrolho<span class="eyebrow-x">menos gols totais/jogo</span></div><ol class="rk"><li><span class="rk-n">1. Cuiabá</span><span class="rk-v">1.14</span></li><li><span class="rk-n">2. Juventude</span><span class="rk-v">1.57</span></li><li><span class="rk-n">3. Sport Recife</span><span class="rk-v">1.86</span></li><li><span class="rk-n">4. Botafogo-SP</span><span class="rk-v">1.93</span></li><li><span class="rk-n">5. Criciúma</span><span class="rk-v">1.93</span></li></ol></div><div class="rcard"><div class="eyebrow">🟨 Mais cartões<span class="eyebrow-x">recebidos/jogo</span></div><ol class="rk"><li><span class="rk-n">1. CRB</span><span class="rk-v">3.6</span></li><li><span class="rk-n">2. Avaí</span><span class="rk-v">3.6</span></li><li><span class="rk-n">3. Vila Nova</span><span class="rk-v">3.4</span></li><li><span class="rk-n">4. Ponte Preta</span><span class="rk-v">3.4</span></li><li><span class="rk-n">5. Athletic Club</span><span class="rk-v">3.1</span></li></ol></div><div class="rcard"><div class="eyebrow">🏰 Fortes em casa<span class="eyebrow-x">% de vitória em casa</span></div><ol class="rk"><li><span class="rk-n">1. Vila Nova</span><span class="rk-v">71%</span></li><li><span class="rk-n">2. Fortaleza</span><span class="rk-v">67%</span></li><li><span class="rk-n">3. Juventude</span><span class="rk-v">57%</span></li><li><span class="rk-n">4. Goiás</span><span class="rk-v">57%</span></li><li><span class="rk-n">5. Náutico</span><span class="rk-v">50%</span></li></ol></div></div>
+      </section></main>
+  <footer><b>Probabilidades FC</b> · tendências dos jogos já disputados · dados do 365scores</footer>
+</body>
+</html>

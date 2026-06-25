@@ -31,7 +31,7 @@ from dados.registro import registrar, id_jogo
 from motor.forca import (EstatisticasTime,
                          gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
-from site_gerador import card_jogo, gerar_site
+from site_gerador import card_jogo, gerar_site, gerar_tendencias
 
 FUSO_BR = timezone(timedelta(hours=-3))
 DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
@@ -240,6 +240,27 @@ def main(offline: bool = False) -> int:
     destino = gerar_site(grupos, ultima_coleta, dados_backup=dados_backup, placar=placar)
     print(f"=== Pronto! {total} jogos no site, separados em {len(grupos)} data(s) ===")
     print(f"Abra: {destino}")
+
+    # aba Tendências (scout dos jogos já disputados) — só online, nunca quebra o site
+    if not offline:
+        try:
+            from backtest import coletar_registros
+            from estudo import estudar
+            from estudo_times import rankings
+            d2 = hoje.strftime("%d/%m/%Y")
+            d1 = (hoje - timedelta(days=210)).strftime("%d/%m/%Y")
+            trends = []
+            for lk in LIGAS:
+                reg = coletar_registros(COMPETICOES_365[lk], d1, d2)
+                trends.append({
+                    "nome": LIGAS[lk]["nome"], "emoji": LIGAS[lk]["emoji"],
+                    "ambiente": estudar(reg),
+                    "rankings": rankings(reg) if lk != "copa_mundo" else {},
+                })
+            gerar_tendencias(trends, ultima_coleta)
+            print("[aba Tendências gerada]")
+        except Exception as e:
+            print(f"[Tendências falhou: {type(e).__name__}: {e}]")
 
     if total == 0:
         print("!! NENHUM jogo calculado - coleta falhou ou sem jogos. (exit 2)")

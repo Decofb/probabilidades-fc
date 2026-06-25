@@ -63,6 +63,31 @@ def perfis(reg: list[dict]) -> dict:
     return t
 
 
+def rankings(reg: list[dict], min_jogos=6) -> dict:
+    """Mesmos recortes do scout, mas como DADOS (para o site Tendencias)."""
+    t = perfis(reg)
+    t = {k: v for k, v in t.items() if v["j"] >= min_jogos}
+    if not t:
+        return {}
+
+    def xg_dif(d):
+        return (d["gf"] / d["j"] - d["xgf"] / d["xn"]) if d["xn"] else 0.0
+
+    def pj(d, c):
+        return d[c] / d["j"]
+
+    return {
+        "ataque": sorted(((n, d["xgf"]/d["xn"]) for n, d in t.items() if d["xn"]), key=lambda x: -x[1])[:5],
+        "defesa": sorted(((n, d["xga"]/d["xn"]) for n, d in t.items() if d["xn"]), key=lambda x: x[1])[:5],
+        "azarados": sorted(((n, xg_dif(d)) for n, d in t.items() if d["xn"]), key=lambda x: x[1])[:5],
+        "sortudos": sorted(((n, xg_dif(d)) for n, d in t.items() if d["xn"]), key=lambda x: -x[1])[:5],
+        "over": sorted(((n, pj(d, "tot")) for n, d in t.items()), key=lambda x: -x[1])[:5],
+        "ferrolho": sorted(((n, pj(d, "tot")) for n, d in t.items()), key=lambda x: x[1])[:5],
+        "cartoes": sorted(((n, d["cards"]/d["cn"]) for n, d in t.items() if d["cn"]), key=lambda x: -x[1])[:5],
+        "casa": sorted(((n, d["vc"]/d["jc"]) for n, d in t.items() if d["jc"] >= 3), key=lambda x: -x[1])[:5],
+    }
+
+
 def linha_top(titulo, itens, fmt):
     print(f"  {titulo}")
     for nome, val in itens:

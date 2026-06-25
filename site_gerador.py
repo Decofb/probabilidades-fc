@@ -193,6 +193,12 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .backup {{ max-width:680px; margin:14px auto 0; padding:9px 14px; border-radius:10px; text-align:center;
     font-size:12.5px; color:#ffdada; background:rgba(220,40,40,.12); border:1px solid rgba(220,40,40,.35); }}
 
+  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }}
+  .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
+  .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+
   main {{ max-width:1000px; margin:0 auto; padding:6px 16px 84px; }}
 
   .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
@@ -271,6 +277,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 </style>
 </head>
 <body>
+  <nav class="nav"><a class="on" href="index.html">⚽ Jogos</a><a href="tendencias.html">📊 Tendências</a></nav>
   <header>
     <div class="brand">{marca}</div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
@@ -288,4 +295,135 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 
     destino = PASTA_SITE / "index.html"
     destino.write_text(html_doc, encoding="utf-8")
+    return destino
+
+
+# ===================== ABA TENDÊNCIAS =====================
+
+def _amb_strip(a) -> str:
+    if not a or a.get("n", 0) == 0:
+        return ""
+    cells = [("Gols/jogo", f"{a['gols_jogo']:.2f}"), ("Casa", f"{a['vit_casa']:.0f}%"),
+             ("Empate", f"{a['empate']:.0f}%"), ("Fora", f"{a['vit_fora']:.0f}%"),
+             ("Over 2.5", f"{a['o25']:.0f}%"), ("Ambas", f"{a['btts']:.0f}%")]
+    if a.get("esc_jogo"):
+        cells.append(("Escanteios", f"{a['esc_jogo']:.1f}"))
+    if a.get("cart_jogo"):
+        cells.append(("Cartões", f"{a['cart_jogo']:.1f}"))
+    its = "".join(f'<div class="stat"><span class="stat-v">{v}</span><span class="stat-l">{l}</span></div>'
+                  for l, v in cells)
+    return f'<div class="ambiente">{its}</div>'
+
+
+def _rank_card(titulo, sub, itens, fmt) -> str:
+    if not itens:
+        return ""
+    lis = "".join(f'<li><span class="rk-n">{i}. {html.escape(n)}</span>'
+                  f'<span class="rk-v">{fmt(v)}</span></li>' for i, (n, v) in enumerate(itens, 1))
+    return (f'<div class="rcard"><div class="eyebrow">{titulo}'
+            f'<span class="eyebrow-x">{sub}</span></div><ol class="rk">{lis}</ol></div>')
+
+
+def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
+    """trends = lista de {nome, emoji, ambiente(dict estudar), rankings(dict)}."""
+    secoes = ""
+    for t in trends:
+        r = t.get("rankings") or {}
+        cards = ""
+        if r:
+            cards = (
+                _rank_card("⚔️ Melhor ataque", "xG criado/jogo", r.get("ataque", []), lambda v: f"{v:.2f}") +
+                _rank_card("🛡️ Melhor defesa", "xG sofrido/jogo", r.get("defesa", []), lambda v: f"{v:.2f}") +
+                _rank_card("🍀 Azarados", "marcam menos que o xG · tendem a subir", r.get("azarados", []), lambda v: f"{v:+.2f}") +
+                _rank_card("🎲 Sortudos", "marcam mais que o xG · tendem a cair", r.get("sortudos", []), lambda v: f"{v:+.2f}") +
+                _rank_card("🔥 Mais over", "gols totais/jogo", r.get("over", []), lambda v: f"{v:.2f}") +
+                _rank_card("🧱 Ferrolho", "menos gols totais/jogo", r.get("ferrolho", []), lambda v: f"{v:.2f}") +
+                _rank_card("🟨 Mais cartões", "recebidos/jogo", r.get("cartoes", []), lambda v: f"{v:.1f}") +
+                _rank_card("🏰 Fortes em casa", "% de vitória em casa", r.get("casa", []), lambda v: f"{v:.0%}"))
+        n = (t.get("ambiente") or {}).get("n", 0)
+        secoes += f"""
+      <section class="liga-sec">
+        <h2><span>{t['emoji']}</span> {html.escape(t['nome'])}
+            <span class="liga-n">{n} jogos disputados</span></h2>
+        {_amb_strip(t.get('ambiente'))}
+        <div class="ranks">{cards}</div>
+      </section>"""
+    if not secoes:
+        secoes = '<p class="vazio">Tendências em coleta…</p>'
+
+    doc = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Tendências · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
+  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+  .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
+  .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  header {{ text-align:center; padding:28px 18px 6px; }}
+  header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
+  header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
+  header .ts {{ margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }}
+  main {{ max-width:1120px; margin:0 auto; padding:10px 16px 80px; }}
+  .liga-sec {{ margin-top:32px; }}
+  .liga-sec h2 {{ display:flex; align-items:baseline; gap:10px; font-family:'Space Grotesk',sans-serif;
+    font-size:20px; font-weight:700; border-bottom:1px solid var(--line2); padding-bottom:12px; margin:0; }}
+  .liga-n {{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint);
+    font-weight:400; letter-spacing:.5px; }}
+  .ambiente {{ display:flex; flex-wrap:wrap; gap:10px; margin:16px 0 4px; }}
+  .stat {{ flex:1; min-width:90px; padding:11px 12px; border:1px solid var(--line); border-radius:12px;
+    background:var(--panel2); text-align:center; }}
+  .stat-v {{ display:block; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:var(--em); }}
+  .stat-l {{ display:block; font-size:9.5px; color:var(--mut); text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }}
+  .ranks {{ display:grid; grid-template-columns:1fr; gap:13px; margin-top:16px; }}
+  @media(min-width:620px) {{ .ranks {{ grid-template-columns:1fr 1fr; }} }}
+  @media(min-width:980px) {{ .ranks {{ grid-template-columns:1fr 1fr 1fr 1fr; }} }}
+  .rcard {{ border:1px solid var(--line); border-radius:var(--r); padding:13px 14px;
+    background:linear-gradient(180deg,var(--panel),var(--panel2)); }}
+  .eyebrow {{ display:flex; flex-direction:column; gap:3px; margin-bottom:10px;
+    font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:.6px; text-transform:uppercase; color:var(--bone); }}
+  .eyebrow-x {{ color:var(--faint); font-size:9px; letter-spacing:.2px; text-transform:none; }}
+  .rk {{ list-style:none; margin:0; padding:0; }}
+  .rk li {{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:5px 0;
+    border-top:1px solid var(--line2); font-size:12.5px; }}
+  .rk li:first-child {{ border-top:none; }}
+  .rk-n {{ color:#c2cdda; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
+  .rk-v {{ font-family:'IBM Plex Mono',monospace; color:var(--em); font-variant-numeric:tabular-nums; }}
+  .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
+  .nota {{ max-width:760px; margin:18px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
+    border-left:2px solid var(--em); padding-left:13px; }}
+  footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
+  footer b {{ color:var(--em); }}
+</style>
+</head>
+<body>
+  <nav class="nav"><a href="index.html">⚽ Jogos</a><a class="on" href="tendencias.html">📊 Tendências</a></nav>
+  <header>
+    <h1>📊 Tendências</h1>
+    <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
+    <div class="ts">xG · regressão à média · atualizado {data_geracao}</div>
+    <div class="nota">Como ler: <b>xG</b> mostra a qualidade real das chances. Um time <b>azarado</b>
+      (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
+      É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
+  </header>
+  <main>{secoes}</main>
+  <footer><b>Probabilidades FC</b> · tendências dos jogos já disputados · dados do 365scores</footer>
+</body>
+</html>"""
+    destino = PASTA_SITE / "tendencias.html"
+    destino.write_text(doc, encoding="utf-8")
     return destino
