@@ -1,0 +1,10 @@
+# Motor estatistico
+numpy
+scipy
+pandas
+
+# Utilidades
+Unidecode
+
+# Coleta FBref (opcional - pode ser bloqueado por Cloudflare)
+soccerdata
