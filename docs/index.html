@@ -5,56 +5,111 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>⚽ Probabilidades FC</title>
 <style>
-  :root { color-scheme: dark; }
-  * { box-sizing: border-box; }
-  body { margin:0; background:#0b0f17; color:#e5e7eb;
-         font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
-  header { padding:22px 16px 14px; text-align:center;
-            background:linear-gradient(180deg,#111827,#0b0f17); border-bottom:1px solid #1f2937; }
-  header h1 { margin:0; font-size:24px; letter-spacing:.5px; }
-  header .sub { color:#9ca3af; font-size:13px; margin-top:4px; }
-  .aviso { max-width:920px; margin:14px auto 0; padding:10px 14px; font-size:12px;
-            color:#fbbf24; background:#1f2937; border-radius:10px; line-height:1.5; }
-  main { max-width:920px; margin:0 auto; padding:18px 14px 60px; }
-  section h2 { font-size:16px; margin:28px 0 12px; color:#d1d5db;
-                border-left:3px solid #22c55e; padding-left:10px;
-                display:flex; align-items:baseline; gap:10px; position:sticky; top:0;
-                background:#0b0f17; padding-top:8px; padding-bottom:8px; z-index:5; }
-  .dia { font-size:18px; font-weight:700; color:#22c55e; text-transform:uppercase; letter-spacing:.5px; }
-  .dia-sub { font-size:13px; color:#9ca3af; font-weight:400; }
-  .qtd { margin-left:auto; font-size:11px; color:#6b7280; }
-  .liga { background:#1f2937; color:#cbd5e1; padding:1px 8px; border-radius:6px; font-weight:600; }
-  .grade { display:grid; grid-template-columns:1fr; gap:14px; }
-  @media(min-width:760px) { .grade { grid-template-columns:1fr 1fr; } }
-  .card { background:#111827; border:1px solid #1f2937; border-radius:14px; padding:14px; }
-  .topo { margin-bottom:10px; }
-  .confronto { font-size:17px; font-weight:600; display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
-  .confronto .x { color:#6b7280; font-weight:400; }
-  .meta { color:#9ca3af; font-size:12px; margin-top:3px; }
-  .rodada { background:#374151; padding:1px 7px; border-radius:6px; margin-left:6px; }
-  .destaque { display:flex; align-items:center; gap:8px; margin:10px 0;
-               padding:9px 12px; background:#0b0f17; border:1px solid; border-radius:10px; }
-  .destaque-lbl { font-size:10px; text-transform:uppercase; color:#9ca3af; letter-spacing:.5px; }
+  @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap');
+  :root {
+    color-scheme: dark;
+    --bg:#070b12; --panel:#0f1828; --panel-2:#0c1422;
+    --line:#1d2940; --line-soft:#16223a;
+    --txt:#e9eef7; --muted:#90a0b8; --faint:#5d6b82;
+    --emerald:#34d399; --emerald-2:#10b981; --gold:#e8c879;
+    --radius:16px; --shadow:0 14px 34px -16px rgba(0,0,0,.75);
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--txt);
+    font-family:'Inter',-apple-system,Segoe UI,Roboto,sans-serif;
+    background:
+      radial-gradient(1100px 560px at 50% -220px, #13203a 0%, transparent 60%),
+      radial-gradient(760px 460px at 100% 0, #0f241e 0%, transparent 55%),
+      var(--bg);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }
+  ::selection { background:var(--emerald-2); color:#04130d; }
+
+  header { position:relative; text-align:center; padding:36px 16px 22px; overflow:hidden;
+            border-bottom:1px solid var(--line-soft); }
+  header::after { content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px;
+            background:linear-gradient(90deg,transparent,var(--emerald),transparent); opacity:.55; }
+  .brand { display:flex; align-items:center; justify-content:center; gap:12px; }
+  .brand .logo-full { height:74px; width:auto; max-width:88vw; object-fit:contain;
+            filter:drop-shadow(0 6px 20px rgba(52,211,153,.22)); }
+  .brand h1 { margin:0; font-family:'Sora',sans-serif; font-weight:800; font-size:30px;
+            letter-spacing:-.5px; background:linear-gradient(180deg,#ffffff,#b9d7cd);
+            -webkit-background-clip:text; background-clip:text; color:transparent; }
+  .brand .ball { -webkit-text-fill-color:initial; }
+  header .sub { color:var(--muted); font-size:13px; margin-top:10px; letter-spacing:.2px; }
+  header .ts { color:var(--faint); font-size:11px; margin-top:4px; font-variant-numeric:tabular-nums; }
+  header .ts b { color:var(--emerald); font-weight:600; }
+
+  .aviso { max-width:940px; margin:18px auto 0; padding:11px 16px; font-size:12px;
+            color:#f4d58b; background:rgba(232,200,121,.07);
+            border:1px solid rgba(232,200,121,.18); border-radius:12px; line-height:1.55; }
+
+  main { max-width:940px; margin:0 auto; padding:12px 16px 72px; }
+
+  section h2 { display:flex; align-items:center; gap:12px; margin:30px 0 14px;
+            position:sticky; top:0; z-index:5; padding:12px 2px;
+            background:linear-gradient(180deg,var(--bg) 62%,transparent); }
+  .dia { font-family:'Sora',sans-serif; font-size:12px; font-weight:700; letter-spacing:1.4px;
+            text-transform:uppercase; color:#04130d; background:var(--emerald);
+            padding:5px 12px; border-radius:999px; }
+  .dia.fut { color:var(--emerald); background:transparent; border:1px solid var(--line); }
+  .dia-sub { font-size:13px; color:var(--muted); font-weight:500; }
+  .qtd { margin-left:auto; font-size:11px; color:var(--faint); letter-spacing:.3px; }
+
+  .grade { display:grid; grid-template-columns:1fr; gap:16px; }
+  @media(min-width:780px) { .grade { grid-template-columns:1fr 1fr; } }
+
+  .card { position:relative; padding:16px 16px 8px;
+            background:linear-gradient(180deg,var(--panel),var(--panel-2));
+            border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow);
+            transition:transform .18s ease, border-color .18s ease; }
+  .card::before { content:""; position:absolute; left:0; right:0; top:0; height:1px;
+            border-radius:var(--radius) var(--radius) 0 0;
+            background:linear-gradient(90deg,transparent,rgba(255,255,255,.10),transparent); }
+  .card:hover { transform:translateY(-2px); border-color:#2a3a59; }
+  .topo { margin-bottom:4px; }
+  .confronto { font-family:'Sora',sans-serif; font-size:17px; font-weight:700; letter-spacing:-.2px;
+            display:flex; gap:9px; align-items:center; flex-wrap:wrap; }
+  .confronto .x { color:var(--faint); font-weight:400; }
+  .meta { color:var(--muted); font-size:12px; margin-top:6px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+  .liga { background:rgba(255,255,255,.05); color:#c6d2e4; padding:2px 9px; border-radius:999px;
+            font-weight:600; font-size:11px; border:1px solid var(--line-soft); }
+  .rodada { color:var(--faint); }
+
+  .destaque { display:flex; align-items:center; gap:10px; margin:13px 0; padding:11px 13px;
+            background:linear-gradient(90deg,rgba(52,211,153,.09),transparent);
+            border:1px solid var(--line); border-left-width:3px; border-radius:12px; }
+  .destaque-lbl { font-size:9px; text-transform:uppercase; color:var(--muted); letter-spacing:1px; }
   .destaque-val { font-weight:600; font-size:14px; }
-  .destaque-pct { margin-left:auto; font-size:20px; font-weight:700; }
-  .grupo { margin-top:12px; }
-  .grupo-tit { font-size:13px; color:#cbd5e1; margin-bottom:7px; font-weight:600; }
-  .grupo-tit .esp { color:#6b7280; font-weight:400; font-size:11px; }
-  .linha { display:flex; align-items:center; gap:8px; margin:5px 0; }
-  .lbl { width:34%; font-size:12px; color:#d1d5db; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .bar { flex:1; height:9px; background:#1f2937; border-radius:6px; overflow:hidden; }
-  .fill { height:100%; border-radius:6px; }
-  .val { width:38px; text-align:right; font-size:12px; font-variant-numeric:tabular-nums; }
-  .placar { font-size:11px; color:#9ca3af; margin-top:8px; }
-  .vazio { text-align:center; color:#9ca3af; margin-top:40px; }
-  footer { text-align:center; color:#6b7280; font-size:11px; padding:20px; }
+  .destaque-pct { margin-left:auto; font-family:'Sora',sans-serif; font-size:22px; font-weight:800;
+            font-variant-numeric:tabular-nums; }
+
+  .grupo { margin-top:14px; }
+  .grupo-tit { font-size:11px; color:#aab8cd; margin-bottom:9px; font-weight:600;
+            text-transform:uppercase; letter-spacing:.7px; }
+  .grupo-tit .esp { color:var(--faint); font-weight:400; font-size:11px; text-transform:none; letter-spacing:0; }
+  .linha { display:flex; align-items:center; gap:10px; margin:6px 0; }
+  .lbl { width:34%; font-size:12.5px; color:#c4d0e2; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .bar { flex:1; height:8px; background:var(--line-soft); border-radius:999px; overflow:hidden;
+            box-shadow:inset 0 1px 2px rgba(0,0,0,.4); }
+  .fill { height:100%; border-radius:999px; position:relative; }
+  .fill::after { content:""; position:absolute; inset:0;
+            background:linear-gradient(180deg,rgba(255,255,255,.28),transparent 65%); }
+  .val { width:40px; text-align:right; font-size:12.5px; font-weight:600;
+            font-variant-numeric:tabular-nums; color:#dbe4f1; }
+  .placar { font-size:11px; color:var(--muted); margin-top:10px; padding-top:9px;
+            border-top:1px solid var(--line-soft); }
+  .placar b { color:var(--txt); }
+
+  .vazio { text-align:center; color:var(--muted); margin-top:50px; }
+  footer { text-align:center; color:var(--faint); font-size:11px; padding:26px 16px; }
+  footer b { color:var(--emerald); font-weight:600; }
 </style>
 </head>
 <body>
   <header>
-    <h1>⚽ Probabilidades FC</h1>
+    <div class="brand"><img class="logo-full" src="logo.png" alt="Probabilidades FC"></div>
     <div class="sub">Jogos de hoje e amanhã · probabilidades por estatística · sem odds</div>
-    <div class="sub" style="font-size:11px">Última coleta OK: 25/06/2026 14:50</div>
+    <div class="ts">Última coleta OK: <b>25/06/2026 15:13</b></div>
     <div class="aviso">⚠️ As porcentagens são <b>estimativas estatísticas</b> baseadas no histórico recente
       (gols, xG e escanteios). Não são garantia de resultado — futebol tem zebra. Use como apoio, com responsabilidade.</div>
     
@@ -1799,7 +1854,7 @@
     </div></div>
       </section>
       <section>
-        <h2><span class="dia">Sábado</span> <span class="dia-sub">27/06</span>
+        <h2><span class="dia fut">Sábado</span> <span class="dia-sub">27/06</span>
             <span class="qtd">10 jogos</span></h2>
         <div class="grade">
     <div class="card">
@@ -2391,7 +2446,7 @@
       <div class="destaque" style="border-color:#eab308">
         <span class="destaque-lbl">Maior probabilidade</span>
         <span class="destaque-val">Ambas marcam</span>
-        <span class="destaque-pct" style="color:#eab308">50%</span>
+        <span class="destaque-pct" style="color:#eab308">51%</span>
       </div>
 
       <div class="grupo">
@@ -2399,20 +2454,20 @@
         
       <div class="linha">
         <span class="lbl">Croácia</span>
-        <div class="bar"><div class="fill" style="width:32%;background:#f97316"></div></div>
-        <span class="val">32%</span>
+        <div class="bar"><div class="fill" style="width:27%;background:#ef4444"></div></div>
+        <span class="val">27%</span>
       </div>
         
       <div class="linha">
         <span class="lbl">Empate</span>
-        <div class="bar"><div class="fill" style="width:29%;background:#ef4444"></div></div>
-        <span class="val">29%</span>
+        <div class="bar"><div class="fill" style="width:28%;background:#ef4444"></div></div>
+        <span class="val">28%</span>
       </div>
         
       <div class="linha">
         <span class="lbl">Gana</span>
-        <div class="bar"><div class="fill" style="width:39%;background:#f97316"></div></div>
-        <span class="val">39%</span>
+        <div class="bar"><div class="fill" style="width:46%;background:#eab308"></div></div>
+        <span class="val">46%</span>
       </div>
       </div>
 
@@ -2421,28 +2476,28 @@
         
       <div class="linha">
         <span class="lbl">+0.5 gols</span>
-        <div class="bar"><div class="fill" style="width:90%;background:#22c55e"></div></div>
-        <span class="val">90%</span>
+        <div class="bar"><div class="fill" style="width:91%;background:#22c55e"></div></div>
+        <span class="val">91%</span>
       </div>
         
       <div class="linha">
         <span class="lbl">+1.5 gols</span>
-        <div class="bar"><div class="fill" style="width:70%;background:#22c55e"></div></div>
-        <span class="val">70%</span>
+        <div class="bar"><div class="fill" style="width:73%;background:#22c55e"></div></div>
+        <span class="val">73%</span>
       </div>
         
       <div class="linha">
         <span class="lbl">+2.5 gols</span>
-        <div class="bar"><div class="fill" style="width:43%;background:#f97316"></div></div>
-        <span class="val">43%</span>
+        <div class="bar"><div class="fill" style="width:47%;background:#eab308"></div></div>
+        <span class="val">47%</span>
       </div>
         
       <div class="linha">
         <span class="lbl">Ambas marcam</span>
-        <div class="bar"><div class="fill" style="width:50%;background:#eab308"></div></div>
-        <span class="val">50%</span>
+        <div class="bar"><div class="fill" style="width:51%;background:#eab308"></div></div>
+        <span class="val">51%</span>
       </div>
-        <div class="placar">Placar mais provável: <b>1–1</b> (14%) · gols esperados 1.1–1.3</div>
+        <div class="placar">Placar mais provável: <b>1–1</b> (13%) · gols esperados 1.1–1.5</div>
       </div>
 
       
@@ -2450,15 +2505,15 @@
           <div class="grupo-tit">⚖️ Handicap Asiático</div>
           
       <div class="linha">
-        <span class="lbl">Croácia (-0.5)</span>
-        <div class="bar"><div class="fill" style="width:32%;background:#f97316"></div></div>
-        <span class="val">32%</span>
+        <span class="lbl">Croácia (+0.5)</span>
+        <div class="bar"><div class="fill" style="width:54%;background:#eab308"></div></div>
+        <span class="val">54%</span>
       </div>
           
       <div class="linha">
-        <span class="lbl">Gana (+0.5)</span>
-        <div class="bar"><div class="fill" style="width:68%;background:#84cc16"></div></div>
-        <span class="val">68%</span>
+        <span class="lbl">Gana (-0.5)</span>
+        <div class="bar"><div class="fill" style="width:46%;background:#eab308"></div></div>
+        <span class="val">46%</span>
       </div>
         </div>
       
@@ -2467,23 +2522,23 @@
           
       <div class="linha">
         <span class="lbl">+7.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:74%;background:#06b6d4"></div></div>
-        <span class="val">74%</span>
+        <div class="bar"><div class="fill" style="width:75%;background:#06b6d4"></div></div>
+        <span class="val">75%</span>
       </div>
       <div class="linha">
         <span class="lbl">+8.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:62%;background:#06b6d4"></div></div>
-        <span class="val">62%</span>
+        <div class="bar"><div class="fill" style="width:63%;background:#06b6d4"></div></div>
+        <span class="val">63%</span>
       </div>
       <div class="linha">
         <span class="lbl">+9.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:49%;background:#06b6d4"></div></div>
-        <span class="val">49%</span>
+        <div class="bar"><div class="fill" style="width:50%;background:#06b6d4"></div></div>
+        <span class="val">50%</span>
       </div>
       <div class="linha">
         <span class="lbl">+10.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:36%;background:#06b6d4"></div></div>
-        <span class="val">36%</span>
+        <div class="bar"><div class="fill" style="width:37%;background:#06b6d4"></div></div>
+        <span class="val">37%</span>
       </div>
       <div class="linha">
         <span class="lbl">+11.5 escanteios</span>
@@ -2493,32 +2548,32 @@
         </div>
       
         <div class="grupo">
-          <div class="grupo-tit">🟨 Cartões <span class="esp">~3.6 no jogo</span></div>
+          <div class="grupo-tit">🟨 Cartões <span class="esp">~3.4 no jogo</span></div>
           
       <div class="linha">
         <span class="lbl">+2.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:69%;background:#f59e0b"></div></div>
-        <span class="val">69%</span>
+        <div class="bar"><div class="fill" style="width:67%;background:#f59e0b"></div></div>
+        <span class="val">67%</span>
       </div>
       <div class="linha">
         <span class="lbl">+3.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:48%;background:#f59e0b"></div></div>
-        <span class="val">48%</span>
+        <div class="bar"><div class="fill" style="width:45%;background:#f59e0b"></div></div>
+        <span class="val">45%</span>
       </div>
       <div class="linha">
         <span class="lbl">+4.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:29%;background:#f59e0b"></div></div>
-        <span class="val">29%</span>
+        <div class="bar"><div class="fill" style="width:26%;background:#f59e0b"></div></div>
+        <span class="val">26%</span>
       </div>
       <div class="linha">
         <span class="lbl">+5.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:15%;background:#f59e0b"></div></div>
-        <span class="val">15%</span>
+        <div class="bar"><div class="fill" style="width:13%;background:#f59e0b"></div></div>
+        <span class="val">13%</span>
       </div>
       <div class="linha">
         <span class="lbl">+6.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:7%;background:#f59e0b"></div></div>
-        <span class="val">7%</span>
+        <div class="bar"><div class="fill" style="width:6%;background:#f59e0b"></div></div>
+        <span class="val">6%</span>
       </div>
         </div>
     </div>
@@ -2535,7 +2590,7 @@
       <div class="destaque" style="border-color:#eab308">
         <span class="destaque-lbl">Maior probabilidade</span>
         <span class="destaque-val">Vitória Inglaterra</span>
-        <span class="destaque-pct" style="color:#eab308">52%</span>
+        <span class="destaque-pct" style="color:#eab308">50%</span>
       </div>
 
       <div class="grupo">
@@ -2543,8 +2598,8 @@
         
       <div class="linha">
         <span class="lbl">Panamá</span>
-        <div class="bar"><div class="fill" style="width:21%;background:#ef4444"></div></div>
-        <span class="val">21%</span>
+        <div class="bar"><div class="fill" style="width:22%;background:#ef4444"></div></div>
+        <span class="val">22%</span>
       </div>
         
       <div class="linha">
@@ -2555,8 +2610,8 @@
         
       <div class="linha">
         <span class="lbl">Inglaterra</span>
-        <div class="bar"><div class="fill" style="width:52%;background:#eab308"></div></div>
-        <span class="val">52%</span>
+        <div class="bar"><div class="fill" style="width:50%;background:#eab308"></div></div>
+        <span class="val">50%</span>
       </div>
       </div>
 
@@ -2577,8 +2632,8 @@
         
       <div class="linha">
         <span class="lbl">+2.5 gols</span>
-        <div class="bar"><div class="fill" style="width:45%;background:#eab308"></div></div>
-        <span class="val">45%</span>
+        <div class="bar"><div class="fill" style="width:44%;background:#f97316"></div></div>
+        <span class="val">44%</span>
       </div>
         
       <div class="linha">
@@ -2586,7 +2641,7 @@
         <div class="bar"><div class="fill" style="width:48%;background:#eab308"></div></div>
         <span class="val">48%</span>
       </div>
-        <div class="placar">Placar mais provável: <b>1–1</b> (13%) · gols esperados 0.9–1.6</div>
+        <div class="placar">Placar mais provável: <b>1–1</b> (13%) · gols esperados 0.9–1.5</div>
       </div>
 
       
@@ -2595,74 +2650,74 @@
           
       <div class="linha">
         <span class="lbl">Panamá (+0.5)</span>
-        <div class="bar"><div class="fill" style="width:48%;background:#eab308"></div></div>
-        <span class="val">48%</span>
+        <div class="bar"><div class="fill" style="width:50%;background:#eab308"></div></div>
+        <span class="val">50%</span>
       </div>
           
       <div class="linha">
         <span class="lbl">Inglaterra (-0.5)</span>
-        <div class="bar"><div class="fill" style="width:52%;background:#eab308"></div></div>
-        <span class="val">52%</span>
+        <div class="bar"><div class="fill" style="width:50%;background:#eab308"></div></div>
+        <span class="val">50%</span>
       </div>
         </div>
       
         <div class="grupo">
-          <div class="grupo-tit">⛳ Escanteios <span class="esp">~9.6 no jogo</span></div>
+          <div class="grupo-tit">⛳ Escanteios <span class="esp">~9.2 no jogo</span></div>
           
       <div class="linha">
         <span class="lbl">+7.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:74%;background:#06b6d4"></div></div>
-        <span class="val">74%</span>
+        <div class="bar"><div class="fill" style="width:70%;background:#06b6d4"></div></div>
+        <span class="val">70%</span>
       </div>
       <div class="linha">
         <span class="lbl">+8.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:62%;background:#06b6d4"></div></div>
-        <span class="val">62%</span>
+        <div class="bar"><div class="fill" style="width:57%;background:#06b6d4"></div></div>
+        <span class="val">57%</span>
       </div>
       <div class="linha">
         <span class="lbl">+9.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:49%;background:#06b6d4"></div></div>
-        <span class="val">49%</span>
+        <div class="bar"><div class="fill" style="width:44%;background:#06b6d4"></div></div>
+        <span class="val">44%</span>
       </div>
       <div class="linha">
         <span class="lbl">+10.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:36%;background:#06b6d4"></div></div>
-        <span class="val">36%</span>
+        <div class="bar"><div class="fill" style="width:32%;background:#06b6d4"></div></div>
+        <span class="val">32%</span>
       </div>
       <div class="linha">
         <span class="lbl">+11.5 escanteios</span>
-        <div class="bar"><div class="fill" style="width:26%;background:#06b6d4"></div></div>
-        <span class="val">26%</span>
+        <div class="bar"><div class="fill" style="width:22%;background:#06b6d4"></div></div>
+        <span class="val">22%</span>
       </div>
         </div>
       
         <div class="grupo">
-          <div class="grupo-tit">🟨 Cartões <span class="esp">~3.7 no jogo</span></div>
+          <div class="grupo-tit">🟨 Cartões <span class="esp">~3.9 no jogo</span></div>
           
       <div class="linha">
         <span class="lbl">+2.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:72%;background:#f59e0b"></div></div>
-        <span class="val">72%</span>
+        <div class="bar"><div class="fill" style="width:74%;background:#f59e0b"></div></div>
+        <span class="val">74%</span>
       </div>
       <div class="linha">
         <span class="lbl">+3.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:51%;background:#f59e0b"></div></div>
-        <span class="val">51%</span>
+        <div class="bar"><div class="fill" style="width:54%;background:#f59e0b"></div></div>
+        <span class="val">54%</span>
       </div>
       <div class="linha">
         <span class="lbl">+4.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:32%;background:#f59e0b"></div></div>
-        <span class="val">32%</span>
+        <div class="bar"><div class="fill" style="width:34%;background:#f59e0b"></div></div>
+        <span class="val">34%</span>
       </div>
       <div class="linha">
         <span class="lbl">+5.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:17%;background:#f59e0b"></div></div>
-        <span class="val">17%</span>
+        <div class="bar"><div class="fill" style="width:19%;background:#f59e0b"></div></div>
+        <span class="val">19%</span>
       </div>
       <div class="linha">
         <span class="lbl">+6.5 cartões</span>
-        <div class="bar"><div class="fill" style="width:8%;background:#f59e0b"></div></div>
-        <span class="val">8%</span>
+        <div class="bar"><div class="fill" style="width:10%;background:#f59e0b"></div></div>
+        <span class="val">10%</span>
       </div>
         </div>
     </div>
@@ -3244,7 +3299,7 @@
     </div></div>
       </section>
       <section>
-        <h2><span class="dia">Domingo</span> <span class="dia-sub">28/06</span>
+        <h2><span class="dia fut">Domingo</span> <span class="dia-sub">28/06</span>
             <span class="qtd">6 jogos</span></h2>
         <div class="grade">
     <div class="card">
@@ -4112,6 +4167,6 @@
         </div>
     </div></div>
       </section></main>
-  <footer>Probabilidades FC · modelo Poisson · dados do 365scores · atualiza sozinho todo dia</footer>
+  <footer><b>Probabilidades FC</b> · modelo Poisson + Dixon-Coles · dados do 365scores · atualiza sozinho todo dia</footer>
 </body>
 </html>
