@@ -231,7 +231,13 @@ def main(offline: bool = False) -> int:
                      if ARQ_ULTIMO_SUCESSO.exists() else agora)
     dados_backup = not (alguma_online and total > 0)
 
-    destino = gerar_site(grupos, ultima_coleta, dados_backup=dados_backup)
+    try:
+        from placar import linha_site
+        placar = linha_site()
+    except Exception:
+        placar = ""
+
+    destino = gerar_site(grupos, ultima_coleta, dados_backup=dados_backup, placar=placar)
     print(f"=== Pronto! {total} jogos no site, separados em {len(grupos)} data(s) ===")
     print(f"Abra: {destino}")
 

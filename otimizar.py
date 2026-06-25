@@ -40,7 +40,7 @@ def carregar(dias=DIAS):
     return dados
 
 
-def avaliar(dados, fator_gols=1.0, rho=-0.06, disp_esc=None, disp_cart=None):
+def avaliar(dados, fator_gols=1.0, rho=-0.06, disp_esc=None, disp_cart=None, meia_vida=None):
     x12, o15, o25, btts = Tripla(), Binario("o15"), Binario("o25"), Binario("btts")
     esc, cart = Binario("esc"), Binario("cart")
     for liga_key, (reg, hist) in dados.items():
@@ -49,8 +49,8 @@ def avaliar(dados, fator_gols=1.0, rho=-0.06, disp_esc=None, disp_cart=None):
             base, media_gols_mandante=base.media_gols_mandante * fator_gols,
             media_gols_visitante=base.media_gols_visitante * fator_gols)
         for r in reg:
-            tm = stats_antes(hist, r["home"], r["data"])
-            tv = stats_antes(hist, r["away"], r["data"])
+            tm = stats_antes(hist, r["home"], r["data"], meia_vida=meia_vida)
+            tv = stats_antes(hist, r["away"], r["data"], meia_vida=meia_vida)
             if not tm or not tv:
                 continue
             lam_m, lam_v = gols_esperados(tm, tv, liga)
@@ -115,6 +115,19 @@ def main():
                 melhor = (ll, fator, rho)
         print(f"  fator={fator:.2f}  " + "  ".join(linha))
     print(f"\n>>> MELHOR gols: fator={melhor[1]:.2f}, rho={melhor[2]:+.2f}  (logloss {melhor[0]:.4f} vs {ll0:.4f})")
+
+    # FASE 1: recencia (time-decay) — meia-vida em dias
+    print("\nVarredura RECENCIA (meia-vida) -> logloss combinado (fator/rho melhores):")
+    f, rho = melhor[1], melhor[2]
+    melhor_mv = (logloss_gols(avaliar(dados, fator_gols=f, rho=rho)), None)
+    for mv in (90, 60, 45, 30, 21, 14):
+        ll = logloss_gols(avaliar(dados, fator_gols=f, rho=rho, meia_vida=mv))
+        flag = "  <- melhor" if ll < melhor_mv[0] else ""
+        print(f"  meia-vida={mv:>3}d:  logloss={ll:.4f}{flag}")
+        if ll < melhor_mv[0]:
+            melhor_mv = (ll, mv)
+    rotulo = f"{melhor_mv[1]}d" if melhor_mv[1] else "flat (sem decay)"
+    print(f">>> MELHOR recencia: {rotulo}  (logloss {melhor_mv[0]:.4f})")
 
     # escanteios e cartoes: dispersao + NB
     print("\nEscanteios/Cartoes — Binomial Negativa vs Poisson:")

@@ -79,23 +79,41 @@ def coletar_registros(comp_id: int, d1: str, d2: str) -> list[dict]:
 def construir_historico(registros: list[dict]) -> dict[str, list[tuple]]:
     hist = defaultdict(list)
     for r in registros:
-        # (data, gf, ga, xg, xga, esc_feitos, esc_sofridos, cartoes)
+        # (data, gf, ga, xg, xga, esc_feitos, esc_sofridos, cartoes, mando)
         hist[r["home"]].append((r["data"], r["gh"], r["ga"], r["xg_h"], r["xg_a"],
-                                r["cf_h"], r["cf_a"], r["ca_h"]))
+                                r["cf_h"], r["cf_a"], r["ca_h"], "C"))
         hist[r["away"]].append((r["data"], r["ga"], r["gh"], r["xg_a"], r["xg_h"],
-                                r["cf_a"], r["cf_h"], r["ca_a"]))
+                                r["cf_a"], r["cf_h"], r["ca_a"], "F"))
     return hist
 
 
-def stats_antes(hist, time_nome, data, lookback_dias=LOOKBACK_DIAS):
-    corte = (datetime.strptime(data, "%Y-%m-%d") - timedelta(days=lookback_dias)).strftime("%Y-%m-%d")
+def stats_antes(hist, time_nome, data, lookback_dias=LOOKBACK_DIAS, meia_vida=None,
+                mando=None, min_jogos=MIN_JOGOS):
+    """
+    Forma do time antes de 'data'. meia_vida (em dias) ativa o peso por recencia.
+    mando='C'/'F' filtra so jogos em casa/fora (teste de split casa/fora).
+    """
+    base = datetime.strptime(data, "%Y-%m-%d")
+    corte = (base - timedelta(days=lookback_dias)).strftime("%Y-%m-%d")
     prev = [e for e in hist.get(time_nome, []) if corte <= e[0] < data]
-    if len(prev) < MIN_JOGOS:
+    if mando is not None:
+        prev = [e for e in prev if len(e) > 8 and e[8] == mando]
+    if len(prev) < min_jogos:
         return None
 
+    if meia_vida:
+        pesos = [0.5 ** ((base - datetime.strptime(e[0], "%Y-%m-%d")).days / meia_vida)
+                 for e in prev]
+    else:
+        pesos = [1.0] * len(prev)
+
     def med(idx):
-        vals = [e[idx] for e in prev if e[idx] is not None]
-        return sum(vals) / len(vals) if vals else None
+        num = den = 0.0
+        for e, w in zip(prev, pesos):
+            if e[idx] is not None:
+                num += w * e[idx]
+                den += w
+        return num / den if den else None
 
     return EstatisticasTime(
         nome=time_nome, jogos=len(prev),

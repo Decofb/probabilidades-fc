@@ -115,7 +115,7 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
 
 
 def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
-               dados_backup: bool = False) -> Path:
+               dados_backup: bool = False, placar: str = "") -> Path:
     """grupos_data = lista ordenada de (rotulo, subtitulo, [html_card, ...])."""
     nomes = {"HOJE": "Hoje", "AMANHÃ": "Amanhã"}
     secoes = ""
@@ -259,7 +259,10 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .readout b {{ color:#c2cdda; font-weight:600; }}
 
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
-  footer {{ text-align:center; color:var(--faint); font-size:10.5px; padding:30px 16px;
+  .placar-cerebro {{ max-width:1000px; margin:14px auto 0; padding:13px 18px; text-align:center;
+    font-family:'IBM Plex Mono',monospace; font-size:11.5px; color:var(--mut); letter-spacing:.3px;
+    line-height:1.6; border:1px solid var(--line); border-radius:12px; background:var(--panel2); }}
+  footer {{ text-align:center; color:var(--faint); font-size:10.5px; padding:22px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
   footer b {{ color:var(--em); font-weight:500; }}
 
@@ -278,6 +281,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
     {backup}
   </header>
   <main>{secoes}</main>
+  <div class="placar-cerebro">{html.escape(placar)}</div>
   <footer><b>Probabilidades FC</b> · modelo Poisson + Dixon-Coles · dados do 365scores</footer>
 </body>
 </html>"""
