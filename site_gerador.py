@@ -614,9 +614,9 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
     <h1>💡 Dicas</h1>
     <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
     <div class="ts">só mercados validados · atualizado {data_geracao}</div>
-    <div class="nota">Cada dica passa por um <b>estudo cruzado</b>: a probabilidade do modelo precisa
-      <b>bater com o histórico real</b> dos dois times. Se discordam, não vira dica. <b>Muito provável</b> = consenso
-      forte; <b>provável</b> = consenso moderado. Não é garantia — é onde focar. Aposte com responsabilidade.</div>
+    <div class="nota">Modo <b>rígido</b>: só aparece o que é <b>muito provável</b> — o modelo precisa estar alto
+      <b>e</b> o histórico dos dois times confirmar forte. Onde modelo e histórico discordam, não há dica
+      (preferimos não indicar a indicar errado). Dias sem dica = jogos equilibrados. Aposte com responsabilidade.</div>
   </header>
   <main>{secoes}</main>
   <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>

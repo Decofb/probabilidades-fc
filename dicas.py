@@ -17,20 +17,18 @@ from __future__ import annotations
 
 from unidecode import unidecode
 
-H_MIN = 0.52          # histórico mínimo dos times p/ confirmar (não contradizer)
-H_FORTE = 0.58        # histórico forte (sobe a confiança)
+# MODO RÍGIDO: só sai dica quando o modelo é alto E o histórico dos dois times
+# confirma forte. Sem histórico, só near-certezas (Over 1.5 / favorito dominante).
+H_MIN = 0.58          # histórico mínimo dos dois times p/ confirmar (forte)
+P_RESULT = 0.66       # prob mínima de vitória
+P_GOLS = 0.66         # prob mínima over/under/btts
+P_NOBTTS = 0.68
+P_OVER15 = 0.88       # near-certeza
+VIT_MIN = 0.45        # o favorito também precisa vir ganhando
 
 
 def _norm(s: str) -> str:
     return unidecode(s or "").lower().strip()
-
-
-def _confianca(prob: float, hist: float | None) -> str:
-    if prob >= 0.72 and (hist is None or hist >= H_MIN):
-        return "muito provável"
-    if prob >= 0.64 and hist is not None and hist >= H_FORTE:
-        return "muito provável"
-    return "provável"
 
 
 def dicas_do_jogo(j, m, perfis: dict | None = None) -> list[dict]:
@@ -59,39 +57,38 @@ def dicas_do_jogo(j, m, perfis: dict | None = None) -> list[dict]:
         if hist is not None:
             partes.append(f"{round(hist*100)}% no histórico dos times")
         out.append({
-            "mercado": mercado, "p": prob, "confianca": _confianca(prob, hist),
+            "mercado": mercado, "p": prob, "confianca": "muito provável",
             "motivo": f"{base} — " + " · ".join(partes), "reforco": reforco,
         })
 
-    # ---- RESULTADO (cruza com a taxa de vitória do time) ----
-    if m.vitoria_mandante >= 0.62 and (not tem or pm["vit"] >= 0.40):
+    # ---- RESULTADO ----
+    if m.vitoria_mandante >= P_RESULT and (not tem or pm["vit"] >= VIT_MIN):
         emit(f"Vitória {j.mandante}", m.vitoria_mandante, pm["vit"] if tem else None,
-             "favorito claro", flagof("Casa-dependente"))
-    elif m.vitoria_visitante >= 0.62 and (not tem or pv["vit"] >= 0.40):
+             "favorito claro e vem ganhando", flagof("Casa-dependente"))
+    elif m.vitoria_visitante >= P_RESULT and (not tem or pv["vit"] >= VIT_MIN):
         emit(f"Vitória {j.visitante}", m.vitoria_visitante, pv["vit"] if tem else None,
              "favorito mesmo fora de casa")
 
-    # ---- GOLS (modelo E histórico têm que concordar) ----
+    # ---- GOLS (rígido: histórico é OBRIGATÓRIO e tem que confirmar forte) ----
     ho = hmed("o25")
     hu = hmed("o25", inv=True)
-    if m.over_25 >= 0.64 and (ho is None or ho >= H_MIN):
-        emit("Over 2.5 gols", m.over_25, ho, "jogo tende a ser aberto", flagof("Over"))
-    elif (1 - m.over_25) >= 0.64 and (hu is None or hu >= H_MIN):
-        emit("Under 2.5 gols", 1 - m.over_25, hu, "jogo tende a ser truncado",
+    if m.over_25 >= P_GOLS and ho is not None and ho >= H_MIN:
+        emit("Over 2.5 gols", m.over_25, ho, "jogo aberto e confirmado pelo histórico", flagof("Over"))
+    elif (1 - m.over_25) >= P_GOLS and hu is not None and hu >= H_MIN:
+        emit("Under 2.5 gols", 1 - m.over_25, hu, "jogo truncado e confirmado pelo histórico",
              flagof("Under", "Muralha"))
-    elif m.over_15 >= 0.85:
+    elif m.over_15 >= P_OVER15:
         emit("Over 1.5 gols", m.over_15, None, "raríssimo sair com menos de 2 gols")
 
     # ---- AMBAS MARCAM ----
     hb = hmed("btts")
     hnb = hmed("btts", inv=True)
-    if m.ambas_marcam >= 0.64 and (hb is None or hb >= H_MIN):
-        emit("Ambas marcam", m.ambas_marcam, hb, "os dois costumam balançar a rede",
+    if m.ambas_marcam >= P_GOLS and hb is not None and hb >= H_MIN:
+        emit("Ambas marcam", m.ambas_marcam, hb, "os dois marcam e o histórico confirma",
              flagof("Ambas marcam"))
-    elif (1 - m.ambas_marcam) >= 0.66 and (hnb is None or hnb >= H_MIN):
+    elif (1 - m.ambas_marcam) >= P_NOBTTS and hnb is not None and hnb >= H_MIN:
         emit("Ambas NÃO marcam", 1 - m.ambas_marcam, hnb, "um lado tende a zerar",
              flagof("Muralha", "Apagado"))
 
-    # mais confiáveis primeiro
-    out.sort(key=lambda d: (0 if d["confianca"] == "muito provável" else 1, -d["p"]))
+    out.sort(key=lambda d: -d["p"])
     return out
