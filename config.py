@@ -45,7 +45,9 @@ PARAMETROS_LIGA = {
         peso_prior=5.0,
     ),
     "brasileirao_b": ParametrosLiga(
-        media_gols_mandante=1.40, media_gols_visitante=1.00,
+        # mando corrigido pelo estudo dos 140 jogos: Série B quase não tem
+        # vantagem de casa (real 1.21/1.10), e isso melhora o backtest.
+        media_gols_mandante=1.20, media_gols_visitante=1.10,
         media_escanteios_time=4.8, media_cartoes_time=3.0,
         peso_prior=5.0,
     ),
