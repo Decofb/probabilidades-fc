@@ -507,12 +507,15 @@ def card_dica(nome_m, nome_v, hora, liga_sel, dicas) -> str:
     for d in dicas:
         pct = round(d["p"] * 100)
         cor = _cor_dica(pct)
+        conf = d.get("confianca", "provável")
+        cls = "alta" if conf == "muito provável" else "media"
         why = html.escape(d["motivo"])
         if d.get("reforco"):
             why += f' · <b>{html.escape(d["reforco"])}</b>'
         linhas += (f'<div class="dica" style="border-left-color:{cor}">'
                    f'<div class="dica-head"><span class="dica-mkt">{html.escape(d["mercado"])}</span>'
                    f'<span class="dica-pct" style="color:{cor}">{pct}%</span></div>'
+                   f'<div class="dica-conf {cls}">{conf}</div>'
                    f'<div class="dica-why">{why}</div></div>')
     return (f'<article class="dcard">'
             f'<div class="card-top"><span class="liga-tag">{liga_sel}</span>'
@@ -593,7 +596,11 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
   .dica-head {{ display:flex; justify-content:space-between; align-items:baseline; }}
   .dica-mkt {{ font-weight:600; font-size:14px; }}
   .dica-pct {{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; }}
-  .dica-why {{ font-size:11.5px; color:var(--mut); margin-top:3px; line-height:1.45; }}
+  .dica-conf {{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px;
+    text-transform:uppercase; padding:2px 9px; border-radius:999px; margin-top:7px; }}
+  .dica-conf.alta {{ color:#04130d; background:var(--em); font-weight:600; }}
+  .dica-conf.media {{ color:var(--amber); border:1px solid rgba(241,178,74,.4); }}
+  .dica-why {{ font-size:11.5px; color:var(--mut); margin-top:6px; line-height:1.45; }}
   .dica-why b {{ color:#c2cdda; font-weight:600; }}
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
   footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
@@ -607,8 +614,9 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
     <h1>💡 Dicas</h1>
     <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
     <div class="ts">só mercados validados · atualizado {data_geracao}</div>
-    <div class="nota">Dicas são os mercados onde o modelo tem <b>confiança alta</b> (≥60%) e, quando dá,
-      o padrão do time <b>reforça</b>. Não é garantia — é onde vale focar a sua análise. Aposte com responsabilidade.</div>
+    <div class="nota">Cada dica passa por um <b>estudo cruzado</b>: a probabilidade do modelo precisa
+      <b>bater com o histórico real</b> dos dois times. Se discordam, não vira dica. <b>Muito provável</b> = consenso
+      forte; <b>provável</b> = consenso moderado. Não é garantia — é onde focar. Aposte com responsabilidade.</div>
   </header>
   <main>{secoes}</main>
   <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>

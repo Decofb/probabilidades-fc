@@ -130,6 +130,25 @@ def dna_flags_map(reg: list[dict], min_jogos=6) -> dict:
     return {_norm(nm): padroes(d, avg) for nm, d in t.items() if d["j"] >= min_jogos}
 
 
+def perfil_map(reg: list[dict], min_jogos=3) -> dict:
+    """
+    {nome_normalizado: {taxas reais do time}} — usado para CRUZAR com o modelo
+    antes de soltar uma dica (over/under/btts/vitória + flags).
+    """
+    avg = estudar(reg)
+    t = perfis_detalhados(reg)
+    out = {}
+    for nm, d in t.items():
+        if d["j"] < min_jogos:
+            continue
+        j = d["j"]
+        out[_norm(nm)] = {
+            "o25": d["over25"] / j, "btts": d["btts"] / j, "vit": d["V"] / j,
+            "cs": d["cs"] / j, "j": j, "flags": padroes(d, avg),
+        }
+    return out
+
+
 def relatar(nome, reg, min_jogos=6):
     avg = estudar(reg)
     t = perfis_detalhados(reg)

@@ -244,19 +244,19 @@ def main(offline: bool = False) -> int:
     print(f"Abra: {destino}")
 
     # aba Tendências (scout + padrões dos jogos já disputados) — só online
-    dna_map: dict = {}
+    perfis_liga: dict = {}  # {liga: {time_norm: taxas reais}} p/ cruzar com o modelo
     if not offline:
         try:
             from backtest import coletar_registros
             from estudo import estudar
             from estudo_times import rankings, sequencias
-            from padroes import dna_dados, dna_flags_map
+            from padroes import dna_dados, perfil_map
             trends = []
             for lk in LIGAS:
                 d1, d2 = janela_liga(lk, 210, hoje)  # janela da temporada atual
                 reg = coletar_registros(COMPETICOES_365[lk], d1, d2)
                 minj = 3 if lk == "copa_mundo" else 5
-                dna_map[lk] = dna_flags_map(reg)
+                perfis_liga[lk] = perfil_map(reg, 3 if lk == "copa_mundo" else 4)
                 trends.append({
                     "nome": LIGAS[lk]["nome"], "emoji": LIGAS[lk]["emoji"],
                     "ambiente": estudar(reg),
@@ -275,7 +275,7 @@ def main(offline: bool = False) -> int:
         from dicas import dicas_do_jogo
         dpd = defaultdict(list)
         for j, m, ligacfg, lk in dicas_jogos:
-            ds = dicas_do_jogo(j, m, dna_map.get(lk))
+            ds = dicas_do_jogo(j, m, perfis_liga.get(lk))
             if ds:
                 selo = f"{ligacfg.get('emoji', '')} {ligacfg.get('nome', '')}"
                 dpd[j.data].append((j.hora, card_dica(j.mandante, j.visitante, j.hora, selo, ds)))
