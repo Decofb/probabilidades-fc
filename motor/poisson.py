@@ -57,6 +57,10 @@ class ResultadoMercados:
     escanteios: dict[str, float] = field(default_factory=dict)
     escanteios_esperados: float = 0.0
 
+    # Cartoes (preenchido so se houver dados) - over X.5
+    cartoes: dict[str, float] = field(default_factory=dict)
+    cartoes_esperados: float = 0.0
+
     def pct(self, valor: float) -> int:
         """Converte fracao em % inteira para exibicao."""
         return round(valor * 100)
@@ -71,8 +75,19 @@ def matriz_placares(lam_mandante: float, lam_visitante: float, max_gols: int = 1
     return matriz
 
 
+def _over_lines(lam: float, linhas) -> dict[str, float]:
+    """P(total > linha) para cada linha X.5, via Poisson com media lam."""
+    out = {}
+    for linha in linhas:
+        limite = int(linha)  # linha 9.5 -> over se total >= 10
+        acumulado = sum(poisson_pmf(k, lam) for k in range(0, limite + 1))
+        out[f"over_{str(linha).replace('.', '_')}"] = 1.0 - acumulado
+    return out
+
+
 def calcular_mercados(lam_mandante: float, lam_visitante: float,
                       lam_escanteios: float | None = None,
+                      lam_cartoes: float | None = None,
                       max_gols: int = 10) -> ResultadoMercados:
     """
     Recebe os gols esperados de cada time (lambda) e devolve todas as
@@ -122,11 +137,13 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
     esc_esperados = 0.0
     if lam_escanteios is not None and lam_escanteios > 0:
         esc_esperados = lam_escanteios
-        for linha in (7.5, 8.5, 9.5, 10.5, 11.5):
-            # P(total escanteios > linha)
-            limite = int(linha)  # ex linha 9.5 -> over se >=10
-            acumulado = sum(poisson_pmf(k, lam_escanteios) for k in range(0, limite + 1))
-            escanteios[f"over_{str(linha).replace('.', '_')}"] = 1.0 - acumulado
+        escanteios = _over_lines(lam_escanteios, (7.5, 8.5, 9.5, 10.5, 11.5))
+
+    cartoes = {}
+    cart_esperados = 0.0
+    if lam_cartoes is not None and lam_cartoes > 0:
+        cart_esperados = lam_cartoes
+        cartoes = _over_lines(lam_cartoes, (2.5, 3.5, 4.5, 5.5, 6.5))
 
     return ResultadoMercados(
         vitoria_mandante=vit_mandante,
@@ -143,6 +160,8 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
         prob_placar_provavel=melhor_prob,
         escanteios=escanteios,
         escanteios_esperados=esc_esperados,
+        cartoes=cartoes,
+        cartoes_esperados=cart_esperados,
     )
 
 

@@ -38,6 +38,8 @@ PARAMS_BASE = {
 # IDs das estatisticas no 365scores
 STAT_XG = 76
 STAT_ESCANTEIOS = 8
+STAT_CARTAO_AMARELO = 1
+STAT_CARTAO_VERMELHO = 2
 
 # IDs das competicoes no 365scores
 COMPETICOES_365 = {
@@ -67,11 +69,12 @@ def stats_partida(game_id: int) -> dict[int, dict[int, float]]:
     So xG e escanteios nos interessam.
     """
     d = _get("game/stats", games=game_id)
+    relevantes = (STAT_XG, STAT_ESCANTEIOS, STAT_CARTAO_AMARELO, STAT_CARTAO_VERMELHO)
     out: dict[int, dict[int, float]] = {}
     for s in d.get("statistics", []):
         cid = s.get("competitorId")
         sid = s.get("id")
-        if cid is None or sid not in (STAT_XG, STAT_ESCANTEIOS):
+        if cid is None or sid not in relevantes:
             continue
         try:
             val = float(str(s.get("value", "0")).replace("%", "").replace(",", "."))
@@ -120,8 +123,16 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
 
     def garante(nome):
         acc.setdefault(nome, dict(jogos=0, gf=0.0, gs=0.0, xg=0.0, xga=0.0,
-                                  ef=0.0, es=0.0, xg_n=0, esc_n=0))
+                                  ef=0.0, es=0.0, xg_n=0, esc_n=0,
+                                  cart=0.0, cart_n=0))
         return acc[nome]
+
+    def cartoes_de(st_time):
+        am = st_time.get(STAT_CARTAO_AMARELO)
+        ver = st_time.get(STAT_CARTAO_VERMELHO)
+        if am is None and ver is None:
+            return None
+        return (am or 0) + (ver or 0)
 
     for i, g in enumerate(jogos):
         hc, ac = g["homeCompetitor"], g["awayCompetitor"]
@@ -150,6 +161,13 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
             H["ef"] += ef_h; H["es"] += ef_a; H["esc_n"] += 1
             A["ef"] += ef_a; A["es"] += ef_h; A["esc_n"] += 1
 
+        cart_h = cartoes_de(st.get(hc["id"], {}))
+        cart_a = cartoes_de(st.get(ac["id"], {}))
+        if cart_h is not None:
+            H["cart"] += cart_h; H["cart_n"] += 1
+        if cart_a is not None:
+            A["cart"] += cart_a; A["cart_n"] += 1
+
     times: dict[str, EstatisticasTime] = {}
     for nome, a in acc.items():
         j = a["jogos"]
@@ -163,6 +181,7 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
             xga_por_jogo=(a["xga"] / a["xg_n"]) if a["xg_n"] else None,
             escanteios_feitos_por_jogo=(a["ef"] / a["esc_n"]) if a["esc_n"] else None,
             escanteios_sofridos_por_jogo=(a["es"] / a["esc_n"]) if a["esc_n"] else None,
+            cartoes_por_jogo=(a["cart"] / a["cart_n"]) if a["cart_n"] else None,
         )
     return times
 

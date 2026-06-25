@@ -32,6 +32,7 @@ class EstatisticasTime:
     xga_por_jogo: float | None = None         # gols esperados sofridos (defesa)
     escanteios_feitos_por_jogo: float | None = None
     escanteios_sofridos_por_jogo: float | None = None
+    cartoes_por_jogo: float | None = None   # cartoes (amarelo+vermelho) recebidos por jogo
 
     def ataque_efetivo(self) -> float:
         """Combina gols reais e xG (peso 60% xG por ser mais estavel)."""
@@ -92,3 +93,14 @@ def escanteios_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime
 
     total = esc_m + esc_v
     return max(4.0, min(total, 16.0))
+
+
+def cartoes_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime) -> float | None:
+    """
+    Total de cartoes esperados na partida = cartoes que cada time costuma
+    receber por jogo, somados. Simples e estavel.
+    """
+    if mandante.cartoes_por_jogo is None or visitante.cartoes_por_jogo is None:
+        return None
+    total = mandante.cartoes_por_jogo + visitante.cartoes_por_jogo
+    return max(1.0, min(total, 12.0))

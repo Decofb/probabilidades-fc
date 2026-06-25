@@ -35,7 +35,7 @@ def salvar_times_csv(liga_key: str, times: dict[str, EstatisticasTime]) -> Path:
     with caminho.open("w", newline="", encoding="utf-8") as f:
         w = csv.writer(f)
         w.writerow(["time", "jogos", "gols_feitos", "gols_sofridos",
-                    "xg", "xga", "esc_feitos", "esc_sofridos"])
+                    "xg", "xga", "esc_feitos", "esc_sofridos", "cartoes"])
         for t in times.values():
             w.writerow([
                 t.nome, t.jogos,
@@ -44,6 +44,7 @@ def salvar_times_csv(liga_key: str, times: dict[str, EstatisticasTime]) -> Path:
                 "" if t.xga_por_jogo is None else round(t.xga_por_jogo, 3),
                 "" if t.escanteios_feitos_por_jogo is None else round(t.escanteios_feitos_por_jogo, 3),
                 "" if t.escanteios_sofridos_por_jogo is None else round(t.escanteios_sofridos_por_jogo, 3),
+                "" if t.cartoes_por_jogo is None else round(t.cartoes_por_jogo, 3),
             ])
     return caminho
 
@@ -67,6 +68,7 @@ def carregar_times_csv(liga_key: str) -> dict[str, EstatisticasTime]:
                 xga_por_jogo=num("xga"),
                 escanteios_feitos_por_jogo=num("esc_feitos"),
                 escanteios_sofridos_por_jogo=num("esc_sofridos"),
+                cartoes_por_jogo=num("cartoes"),
             )
     return times
 

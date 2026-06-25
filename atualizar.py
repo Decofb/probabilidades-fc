@@ -28,7 +28,7 @@ from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
 from dados.fonte import salvar_times_csv, carregar_times_csv
 from dados.jogos import salvar_jogos_csv, carregar_jogos_csv
 from motor.forca import (EstatisticasTime, ParametrosLiga,
-                         gols_esperados, escanteios_esperados)
+                         gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
 from site_gerador import card_jogo, gerar_site
 
@@ -130,7 +130,8 @@ def main(offline: bool = False) -> None:
 
             lam_m, lam_v = gols_esperados(tm, tv, liga_params)
             esc = escanteios_esperados(tm, tv, liga_params)
-            mercados = calcular_mercados(lam_m, lam_v, lam_escanteios=esc)
+            cart = cartoes_esperados(tm, tv)
+            mercados = calcular_mercados(lam_m, lam_v, lam_escanteios=esc, lam_cartoes=cart)
 
             margem = arredondar_meio(lam_m - lam_v)
             linha_ha = -margem if margem != 0 else -0.5

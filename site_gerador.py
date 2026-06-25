@@ -73,6 +73,18 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
           {linhas}
         </div>"""
 
+    html_cart = ""
+    if m.cartoes:
+        linhas = ""
+        for chave, val in m.cartoes.items():
+            linha = chave.replace("over_", "").replace("_", ".")
+            linhas += _barra(f"+{linha} cartões", round(val * 100), "#f59e0b")
+        html_cart = f"""
+        <div class="grupo">
+          <div class="grupo-tit">🟨 Cartões <span class="esp">~{m.cartoes_esperados:.1f} no jogo</span></div>
+          {linhas}
+        </div>"""
+
     html_ha = ""
     if ha:
         sinal = "+" if linha_ha >= 0 else ""
@@ -120,6 +132,7 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
 
       {html_ha}
       {html_esc}
+      {html_cart}
     </div>"""
 
 
