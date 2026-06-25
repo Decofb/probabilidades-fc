@@ -40,14 +40,20 @@ def carregar(dias=DIAS):
     return dados
 
 
-def avaliar(dados, fator_gols=1.0, rho=-0.06, disp_esc=None, disp_cart=None, meia_vida=None):
+def avaliar(dados, fator_gols=1.0, rho=-0.06, disp_esc=None, disp_cart=None, meia_vida=None,
+            peso_xg=None, peso_prior=None):
     x12, o15, o25, btts = Tripla(), Binario("o15"), Binario("o25"), Binario("btts")
     esc, cart = Binario("esc"), Binario("cart")
     for liga_key, (reg, hist) in dados.items():
         base = parametros_da_liga(liga_key)
+        extra = {}
+        if peso_xg is not None:
+            extra["peso_xg"] = peso_xg
+        if peso_prior is not None:
+            extra["peso_prior"] = peso_prior
         liga = dataclasses.replace(
             base, media_gols_mandante=base.media_gols_mandante * fator_gols,
-            media_gols_visitante=base.media_gols_visitante * fator_gols)
+            media_gols_visitante=base.media_gols_visitante * fator_gols, **extra)
         for r in reg:
             tm = stats_antes(hist, r["home"], r["data"], meia_vida=meia_vida)
             tv = stats_antes(hist, r["away"], r["data"], meia_vida=meia_vida)
@@ -128,6 +134,21 @@ def main():
             melhor_mv = (ll, mv)
     rotulo = f"{melhor_mv[1]}d" if melhor_mv[1] else "flat (sem decay)"
     print(f">>> MELHOR recencia: {rotulo}  (logloss {melhor_mv[0]:.4f})")
+
+    # SWEEP GRANDE: peso do xG x shrinkage k
+    print("\nVarredura PESO-xG x SHRINKAGE-k -> logloss combinado:")
+    print(f"  {'k/xG':>6} " + "  ".join(f"{w:>5.2f}" for w in (0.3, 0.5, 0.6, 0.7, 0.85, 1.0)))
+    melhor_g = (ll0, 0.6, 5.0)
+    for k in (2.0, 3.0, 5.0, 8.0, 12.0):
+        linha = []
+        for w in (0.3, 0.5, 0.6, 0.7, 0.85, 1.0):
+            ll = logloss_gols(avaliar(dados, fator_gols=f, rho=rho, peso_xg=w, peso_prior=k))
+            linha.append(f"{ll:.3f}")
+            if ll < melhor_g[0]:
+                melhor_g = (ll, w, k)
+        print(f"  k={k:>4.0f} " + "  ".join(f"{x:>5}" for x in linha))
+    print(f">>> MELHOR xG/k: peso_xg={melhor_g[1]:.2f}, k={melhor_g[2]:.0f}  "
+          f"(logloss {melhor_g[0]:.4f} vs {ll0:.4f})")
 
     # escanteios e cartoes: dispersao + NB
     print("\nEscanteios/Cartoes — Binomial Negativa vs Poisson:")

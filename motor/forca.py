@@ -34,15 +34,15 @@ class EstatisticasTime:
     escanteios_sofridos_por_jogo: float | None = None
     cartoes_por_jogo: float | None = None   # cartoes (amarelo+vermelho) recebidos por jogo
 
-    def ataque_efetivo(self) -> float:
-        """Combina gols reais e xG (peso 60% xG por ser mais estavel)."""
+    def ataque_efetivo(self, peso_xg: float = 0.6) -> float:
+        """Combina gols reais e xG (peso_xg = quanto o xG pesa, por ser mais estavel)."""
         if self.xg_por_jogo is not None:
-            return 0.4 * self.gols_feitos_por_jogo + 0.6 * self.xg_por_jogo
+            return (1 - peso_xg) * self.gols_feitos_por_jogo + peso_xg * self.xg_por_jogo
         return self.gols_feitos_por_jogo
 
-    def defesa_efetiva(self) -> float:
+    def defesa_efetiva(self, peso_xg: float = 0.6) -> float:
         if self.xga_por_jogo is not None:
-            return 0.4 * self.gols_sofridos_por_jogo + 0.6 * self.xga_por_jogo
+            return (1 - peso_xg) * self.gols_sofridos_por_jogo + peso_xg * self.xga_por_jogo
         return self.gols_sofridos_por_jogo
 
 
@@ -63,6 +63,7 @@ class ParametrosLiga:
     media_escanteios_time: float = 5.0  # escanteios medios de um time por jogo
     media_cartoes_time: float = 2.0     # cartoes medios de um time por jogo
     peso_prior: float = 5.0             # k do shrinkage (jogos equivalentes)
+    peso_xg: float = 0.6                # quanto o xG pesa vs gols reais (0..1)
     campo_neutro: bool = False
     # dispersao da Binomial Negativa (estimada empiricamente no otimizar.py).
     # Sobredispersao leve -> r alto, perto do Poisson. r mais baixo = mais cauda.
@@ -95,10 +96,11 @@ def gols_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
     k = liga.peso_prior
 
     # shrinkage: ataque/defesa de cada time regridem para a media da liga
-    atk_m = _encolher(mandante.ataque_efetivo(), mandante.jogos, media_total, k)
-    def_m = _encolher(mandante.defesa_efetiva(), mandante.jogos, media_total, k)
-    atk_v = _encolher(visitante.ataque_efetivo(), visitante.jogos, media_total, k)
-    def_v = _encolher(visitante.defesa_efetiva(), visitante.jogos, media_total, k)
+    w = liga.peso_xg
+    atk_m = _encolher(mandante.ataque_efetivo(w), mandante.jogos, media_total, k)
+    def_m = _encolher(mandante.defesa_efetiva(w), mandante.jogos, media_total, k)
+    atk_v = _encolher(visitante.ataque_efetivo(w), visitante.jogos, media_total, k)
+    def_v = _encolher(visitante.defesa_efetiva(w), visitante.jogos, media_total, k)
 
     ataque_m, defesa_m = atk_m / media_total, def_m / media_total
     ataque_v, defesa_v = atk_v / media_total, def_v / media_total
