@@ -26,8 +26,13 @@ import requests
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
+import json  # noqa: E402
+
+from config import PASTA_CACHE  # noqa: E402
 from motor.forca import EstatisticasTime  # noqa: E402
 from dados.jogos import Jogo  # noqa: E402
+
+_CACHE_STATS = PASTA_CACHE / "stats365"
 
 BASE = "https://webws.365scores.com/web"
 HEADERS = {"User-Agent": "Mozilla/5.0", "Referer": "https://www.365scores.com/"}
@@ -64,11 +69,21 @@ def listar_jogos(comp_id: int, d1: str, d2: str) -> list[dict]:
     return [g for g in d.get("games", []) if g.get("competitionId") == comp_id]
 
 
-def stats_partida(game_id: int) -> dict[int, dict[int, float]]:
+def stats_partida(game_id: int, usar_cache: bool = True) -> dict[int, dict[int, float]]:
     """
     Estatisticas de uma partida: {competitorId: {stat_id: valor}}.
     Filtra so o que o modelo usa: xG, escanteios e cartoes.
+    Jogos finalizados nao mudam, entao cacheamos em disco (cache/stats365/<id>.json)
+    -> backtest e atualizacao diaria nao refazem chamadas.
     """
+    cache_file = _CACHE_STATS / f"{game_id}.json"
+    if usar_cache and cache_file.exists():
+        try:
+            raw = json.loads(cache_file.read_text(encoding="utf-8"))
+            return {int(k): {int(kk): vv for kk, vv in v.items()} for k, v in raw.items()}
+        except (ValueError, OSError):
+            pass
+
     d = _get("game/stats", games=game_id)
     relevantes = (STAT_XG, STAT_ESCANTEIOS, STAT_CARTAO_AMARELO, STAT_CARTAO_VERMELHO)
     out: dict[int, dict[int, float]] = {}
@@ -82,6 +97,15 @@ def stats_partida(game_id: int) -> dict[int, dict[int, float]]:
         except ValueError:
             continue
         out.setdefault(cid, {})[sid] = val
+
+    if out:  # so cacheia partida com stats (finalizada)
+        try:
+            _CACHE_STATS.mkdir(parents=True, exist_ok=True)
+            cache_file.write_text(
+                json.dumps({str(k): {str(kk): vv for kk, vv in v.items()} for k, v in out.items()}),
+                encoding="utf-8")
+        except OSError:
+            pass
     return out
 
 
