@@ -168,12 +168,13 @@ def relatar(nome, reg, min_jogos=6):
 
 def main(liga=None):
     hoje = datetime.now().date()
-    ligas = [liga] if liga else ["brasileirao_a", "brasileirao_b"]
-    print(f"\n### PADRÕES POR EQUIPE — TEMPORADA (até {hoje.strftime('%d/%m/%Y')}) ###")
+    ligas = [liga] if liga else ["copa_mundo", "brasileirao_a", "brasileirao_b"]
+    print(f"\n### PADRÕES DE TODOS OS TIMES — TEMPORADA (até {hoje.strftime('%d/%m/%Y')}) ###")
     for lk in ligas:
         d1, d2 = janela_liga(lk, 210, hoje)
+        minj = 2 if lk == "copa_mundo" else 6
         print(f"\n...coletando {LIGAS[lk]['nome']} (desde {d1})", flush=True)
-        relatar(LIGAS[lk]["nome"], coletar_registros(COMPETICOES_365[lk], d1, d2))
+        relatar(LIGAS[lk]["nome"], coletar_registros(COMPETICOES_365[lk], d1, d2), min_jogos=minj)
     print()
 
 

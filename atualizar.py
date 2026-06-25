@@ -262,7 +262,7 @@ def main(offline: bool = False) -> int:
                     "ambiente": estudar(reg),
                     "rankings": rankings(reg) if lk != "copa_mundo" else {},
                     "sequencias": sequencias(reg, min_jogos=minj),
-                    "dna": dna_dados(reg) if lk != "copa_mundo" else [],
+                    "dna": dna_dados(reg, 2 if lk == "copa_mundo" else 6),
                 })
             gerar_tendencias(trends, ultima_coleta)
             print("[aba Tendências gerada]")
