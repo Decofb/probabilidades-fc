@@ -16,7 +16,7 @@ import sys
 from collections import defaultdict
 from datetime import datetime, timedelta
 
-from config import LIGAS
+from config import LIGAS, janela_liga
 from dados.scores365 import COMPETICOES_365
 from backtest import coletar_registros
 
@@ -177,11 +177,11 @@ def relatar(nome, reg, min_jogos=6):
 
 
 def main(dias=210):
-    fim = datetime.now()
-    d2, d1 = fim.strftime("%d/%m/%Y"), (fim - timedelta(days=dias)).strftime("%d/%m/%Y")
-    print(f"\n### SCOUT POR TIME ({d1} a {d2}) ###")
+    hoje = datetime.now().date()
+    print(f"\n### SCOUT POR TIME — TEMPORADA (até {hoje.strftime('%d/%m/%Y')}) ###")
     for liga_key in ("brasileirao_a", "brasileirao_b"):
-        print(f"\n...coletando {LIGAS[liga_key]['nome']}", flush=True)
+        d1, d2 = janela_liga(liga_key, dias, hoje)
+        print(f"\n...coletando {LIGAS[liga_key]['nome']} (desde {d1})", flush=True)
         reg = coletar_registros(COMPETICOES_365[liga_key], d1, d2)
         relatar(LIGAS[liga_key]["nome"], reg)
     print()

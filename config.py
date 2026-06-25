@@ -56,3 +56,26 @@ PARAMETROS_LIGA = {
 
 def parametros_da_liga(liga_key: str) -> ParametrosLiga:
     return PARAMETROS_LIGA.get(liga_key, ParametrosLiga())
+
+
+# Inicio da TEMPORADA atual por liga. Usado nos estudos/tendencias para nao
+# misturar o fim da temporada passada (sequencias e medias ficam "puras").
+import datetime as _dt  # noqa: E402
+
+INICIO_TEMPORADA = {
+    "copa_mundo": "2026-06-01",
+    "brasileirao_a": "2026-01-15",
+    "brasileirao_b": "2026-01-15",
+}
+
+
+def janela_liga(liga_key: str, dias: int = 210, hoje_date=None):
+    """(d1, d2) em DD/MM/AAAA respeitando o inicio da temporada da liga."""
+    hoje = hoje_date or _dt.date.today()
+    d1 = hoje - _dt.timedelta(days=dias)
+    ini = INICIO_TEMPORADA.get(liga_key)
+    if ini:
+        d_ini = _dt.date.fromisoformat(ini)
+        if d_ini > d1:
+            d1 = d_ini
+    return d1.strftime("%d/%m/%Y"), hoje.strftime("%d/%m/%Y")

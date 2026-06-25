@@ -22,7 +22,7 @@ from datetime import datetime, timedelta, timezone
 
 from unidecode import unidecode
 
-from config import LIGAS, PASTA_SITE, parametros_da_liga
+from config import LIGAS, PASTA_SITE, parametros_da_liga, janela_liga
 from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
                              coletar_jogos_futuros)
 from dados.fonte import salvar_times_csv, carregar_times_csv
@@ -247,10 +247,9 @@ def main(offline: bool = False) -> int:
             from backtest import coletar_registros
             from estudo import estudar
             from estudo_times import rankings, sequencias
-            d2 = hoje.strftime("%d/%m/%Y")
-            d1 = (hoje - timedelta(days=210)).strftime("%d/%m/%Y")
             trends = []
             for lk in LIGAS:
+                d1, d2 = janela_liga(lk, 210, hoje)  # janela da temporada atual
                 reg = coletar_registros(COMPETICOES_365[lk], d1, d2)
                 minj = 3 if lk == "copa_mundo" else 5
                 trends.append({
