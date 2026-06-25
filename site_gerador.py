@@ -50,9 +50,13 @@ def _melhor_aposta(j: Jogo, m: ResultadoMercados) -> tuple[str, int]:
     return max(candidatos, key=lambda c: c[1])
 
 
-def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float) -> str:
+def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
+              liga_cfg: dict | None = None) -> str:
     aposta, conf = _melhor_aposta(j, m)
     cor_conf = _cor_por_pct(conf)
+    selo = ""
+    if liga_cfg:
+        selo = f'<span class="liga">{liga_cfg.get("emoji","")} {liga_cfg.get("nome","")}</span>'
 
     # 1X2
     pm, pe, pv = m.pct(m.vitoria_mandante), m.pct(m.empate), m.pct(m.vitoria_visitante)
@@ -89,7 +93,7 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float) -
           <span class="x">×</span>
           <span class="time">{j.visitante}</span>
         </div>
-        <div class="meta">{j.data} · {j.hora} {rodada}</div>
+        <div class="meta">{selo} {j.hora} {rodada}</div>
       </div>
 
       <div class="destaque" style="border-color:{cor_conf}">
@@ -107,8 +111,9 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float) -
 
       <div class="grupo">
         <div class="grupo-tit">⚽ Gols</div>
-        {_barra("Over 1.5", m.pct(m.over_15), _cor_por_pct(m.pct(m.over_15)))}
-        {_barra("Over 2.5", m.pct(m.over_25), _cor_por_pct(m.pct(m.over_25)))}
+        {_barra("+0.5 gols", m.pct(m.over_05), _cor_por_pct(m.pct(m.over_05)))}
+        {_barra("+1.5 gols", m.pct(m.over_15), _cor_por_pct(m.pct(m.over_15)))}
+        {_barra("+2.5 gols", m.pct(m.over_25), _cor_por_pct(m.pct(m.over_25)))}
         {_barra("Ambas marcam", m.pct(m.ambas_marcam), _cor_por_pct(m.pct(m.ambas_marcam)))}
         <div class="placar">Placar mais provável: <b>{m.placar_provavel[0]}–{m.placar_provavel[1]}</b> ({m.pct(m.prob_placar_provavel)}%) · gols esperados {m.gols_esperados_mandante:.1f}–{m.gols_esperados_visitante:.1f}</div>
       </div>
@@ -118,21 +123,25 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float) -
     </div>"""
 
 
-def gerar_site(blocos: dict[str, list[str]], data_geracao: str) -> Path:
-    """blocos = {liga_key: [html_card, ...]}"""
+def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str) -> Path:
+    """
+    grupos_data = lista ordenada de (rotulo, subtitulo, [html_card, ...]).
+    Cada grupo e uma DATA (ex: rotulo='HOJE', subtitulo='quinta, 25/06').
+    Os jogos ficam separados por data, como o usuario pediu.
+    """
     secoes = ""
-    for liga_key, cards in blocos.items():
+    for rotulo, subtitulo, cards in grupos_data:
         if not cards:
             continue
-        cfg = LIGAS[liga_key]
         secoes += f"""
       <section>
-        <h2>{cfg['emoji']} {cfg['nome']}</h2>
+        <h2><span class="dia">{rotulo}</span> <span class="dia-sub">{subtitulo}</span>
+            <span class="qtd">{len(cards)} jogo{'s' if len(cards) != 1 else ''}</span></h2>
         <div class="grade">{''.join(cards)}</div>
       </section>"""
 
     if not secoes:
-        secoes = '<p class="vazio">Nenhum jogo carregado. Rode <code>python atualizar.py</code> com a tabela de jogos preenchida.</p>'
+        secoes = '<p class="vazio">Nenhum jogo para hoje ou amanhã no momento.</p>'
 
     html = f"""<!DOCTYPE html>
 <html lang="pt-BR">
@@ -152,8 +161,14 @@ def gerar_site(blocos: dict[str, list[str]], data_geracao: str) -> Path:
   .aviso {{ max-width:920px; margin:14px auto 0; padding:10px 14px; font-size:12px;
             color:#fbbf24; background:#1f2937; border-radius:10px; line-height:1.5; }}
   main {{ max-width:920px; margin:0 auto; padding:18px 14px 60px; }}
-  section h2 {{ font-size:16px; margin:24px 0 12px; color:#d1d5db;
-                border-left:3px solid #22c55e; padding-left:10px; }}
+  section h2 {{ font-size:16px; margin:28px 0 12px; color:#d1d5db;
+                border-left:3px solid #22c55e; padding-left:10px;
+                display:flex; align-items:baseline; gap:10px; position:sticky; top:0;
+                background:#0b0f17; padding-top:8px; padding-bottom:8px; z-index:5; }}
+  .dia {{ font-size:18px; font-weight:700; color:#22c55e; text-transform:uppercase; letter-spacing:.5px; }}
+  .dia-sub {{ font-size:13px; color:#9ca3af; font-weight:400; }}
+  .qtd {{ margin-left:auto; font-size:11px; color:#6b7280; }}
+  .liga {{ background:#1f2937; color:#cbd5e1; padding:1px 8px; border-radius:6px; font-weight:600; }}
   .grade {{ display:grid; grid-template-columns:1fr; gap:14px; }}
   @media(min-width:760px) {{ .grade {{ grid-template-columns:1fr 1fr; }} }}
   .card {{ background:#111827; border:1px solid #1f2937; border-radius:14px; padding:14px; }}
@@ -183,12 +198,13 @@ def gerar_site(blocos: dict[str, list[str]], data_geracao: str) -> Path:
 <body>
   <header>
     <h1>⚽ Probabilidades FC</h1>
-    <div class="sub">Probabilidades por estatística · sem odds · {data_geracao}</div>
+    <div class="sub">Jogos de hoje e amanhã · probabilidades por estatística · sem odds</div>
+    <div class="sub" style="font-size:11px">Atualizado em {data_geracao}</div>
     <div class="aviso">⚠️ As porcentagens são <b>estimativas estatísticas</b> baseadas no histórico recente
       (gols, xG e escanteios). Não são garantia de resultado — futebol tem zebra. Use como apoio, com responsabilidade.</div>
   </header>
   <main>{secoes}</main>
-  <footer>Gerado por Probabilidades FC · modelo Poisson · dados FBref + tabela FIFA/ge.globo</footer>
+  <footer>Probabilidades FC · modelo Poisson · dados do 365scores · atualiza sozinho todo dia</footer>
 </body>
 </html>"""
 

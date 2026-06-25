@@ -33,7 +33,7 @@ from motor.poisson import calcular_mercados, handicap_asiatico
 from site_gerador import card_jogo, gerar_site
 
 DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
-DIAS_FRENTE = 6       # quantos dias pra frente buscar jogos
+DIAS_FRENTE = 3       # foco em hoje e amanha (+1 de folga)
 
 
 def normalizar(nome: str) -> str:
@@ -86,20 +86,41 @@ def obter_dados(liga_key: str, offline: bool):
     return times, jogos
 
 
+DIAS_SEMANA = ["segunda", "terça", "quarta", "quinta", "sexta", "sábado", "domingo"]
+
+
+def rotulo_data(data_str: str, hoje):
+    """Devolve (rotulo, subtitulo) p/ uma data AAAA-MM-DD. Ex: ('HOJE','quinta, 25/06')."""
+    d = datetime.strptime(data_str, "%Y-%m-%d").date()
+    delta = (d - hoje).days
+    sub = f"{DIAS_SEMANA[d.weekday()]}, {d.strftime('%d/%m')}"
+    if delta == 0:
+        return "HOJE", sub
+    if delta == 1:
+        return "AMANHÃ", sub
+    return sub.split(",")[0].capitalize(), d.strftime("%d/%m")
+
+
 def main(offline: bool = False) -> None:
     fuso_br = timezone(timedelta(hours=-3))
-    agora = datetime.now(fuso_br).strftime("%d/%m/%Y %H:%M")
+    agora_dt = datetime.now(fuso_br)
+    agora = agora_dt.strftime("%d/%m/%Y %H:%M")
+    hoje = agora_dt.date()
     print(f"\n=== Atualizando Probabilidades FC ({agora}) ===\n")
 
-    blocos: dict[str, list[str]] = {}
     liga_params = ParametrosLiga()
+    # junta TODOS os jogos de todas as ligas, com sua data/hora, p/ separar por data
+    por_data: dict[str, list[tuple[str, str]]] = {}  # data -> [(hora, card_html)]
 
     for liga_key in LIGAS:
         print(f"[{LIGAS[liga_key]['nome']}]")
         times, jogos = obter_dados(liga_key, offline)
 
-        cards = []
+        calc = 0
         for j in jogos:
+            # so hoje e amanha em diante; ignora datas passadas
+            if j.data < hoje.strftime("%Y-%m-%d"):
+                continue
             tm = achar_time(j.mandante, times)
             tv = achar_time(j.visitante, times)
             if not tm or not tv:
@@ -115,14 +136,21 @@ def main(offline: bool = False) -> None:
             linha_ha = -margem if margem != 0 else -0.5
             ha = handicap_asiatico(lam_m, lam_v, linha=linha_ha)
 
-            cards.append(card_jogo(j, mercados, ha, linha_ha))
+            card = card_jogo(j, mercados, ha, linha_ha, LIGAS[liga_key])
+            por_data.setdefault(j.data, []).append((j.hora, card))
+            calc += 1
+        print(f"  -> {calc} jogos calculados\n")
 
-        blocos[liga_key] = cards
-        print(f"  -> {len(cards)} jogos calculados\n")
+    # monta os grupos por data, em ordem cronologica, com rotulo HOJE/AMANHÃ
+    grupos = []
+    for data_str in sorted(por_data):
+        rotulo, sub = rotulo_data(data_str, hoje)
+        cards = [c for _, c in sorted(por_data[data_str])]  # ordena por horario
+        grupos.append((rotulo, sub, cards))
 
-    destino = gerar_site(blocos, agora)
-    total = sum(len(c) for c in blocos.values())
-    print(f"=== Pronto! {total} jogos no site ===")
+    destino = gerar_site(grupos, agora)
+    total = sum(len(c) for _, _, c in grupos)
+    print(f"=== Pronto! {total} jogos no site, separados em {len(grupos)} data(s) ===")
     print(f"Abra: {destino}")
 
 
