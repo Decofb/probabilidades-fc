@@ -20,9 +20,9 @@ def _time(nome, jogos, gf, gs):
 
 # ---------- P0: campo neutro nao da vantagem de casa ----------
 
-def test_copa_campo_neutro_e_simetrico():
-    liga = parametros_da_liga("copa_mundo")
-    assert liga.campo_neutro is True
+def test_campo_neutro_e_simetrico():
+    # mecanismo de campo neutro: com params neutros, times identicos = simetria
+    liga = ParametrosLiga(media_gols_mandante=1.35, media_gols_visitante=1.35, campo_neutro=True)
     a, b = _time("A", 5, 1.5, 1.0), _time("B", 5, 1.5, 1.0)  # times identicos
     lam_m, lam_v = gols_esperados(a, b, liga)
     assert abs(lam_m - lam_v) < 1e-9  # nenhum lado ganha por ser "mandante"

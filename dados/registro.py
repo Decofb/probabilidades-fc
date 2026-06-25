@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import csv
 import sys
+from datetime import date, timedelta
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -72,6 +73,27 @@ def pendentes(hoje_str: str) -> list[dict]:
     """Previsoes ainda nao conferidas cujo jogo ja passou (data < hoje)."""
     return [r for r in carregar()
             if r.get("status") == "previsto" and r.get("data", "") < hoje_str]
+
+
+def expirar(hoje_str: str, dias: int = 10) -> int:
+    """
+    Marca como 'expirado' previsoes que continuam 'previsto' mas cujo jogo ja
+    passou ha mais de 'dias' (provavelmente adiado/cancelado). Evita consultar
+    pra sempre e mantem o log limpo.
+    """
+    try:
+        limite = (date.fromisoformat(hoje_str) - timedelta(days=dias)).isoformat()
+    except ValueError:
+        return 0
+    rows = carregar()
+    n = 0
+    for r in rows:
+        if r.get("status") == "previsto" and r.get("data", "") and r["data"] < limite:
+            r["status"] = "expirado"
+            n += 1
+    if n:
+        _salvar(rows)
+    return n
 
 
 def conferir(resultados: dict, conferido_em: str) -> int:

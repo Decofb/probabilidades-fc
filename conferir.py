@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone, timedelta
 
-from dados.registro import pendentes, conferir as settle, id_jogo
+from dados.registro import pendentes, conferir as settle, expirar, id_jogo
 from dados.scores365 import (COMPETICOES_365, listar_jogos, stats_partida, _finalizado,
                              _janelas, STAT_ESCANTEIOS,
                              STAT_CARTAO_AMARELO, STAT_CARTAO_VERMELHO)
@@ -21,6 +21,7 @@ def conferir_pendentes(hoje=None) -> int:
     """Preenche o resultado real das previsoes cujo jogo ja terminou."""
     if hoje is None:
         hoje = datetime.now(FUSO_BR).date()
+    expirar(hoje.isoformat(), dias=10)  # joga fora previsoes de jogos que nunca terminaram
     pend = pendentes(hoje.strftime("%Y-%m-%d"))
     if not pend:
         return 0

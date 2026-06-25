@@ -35,9 +35,11 @@ LIGAS = {
 # Brasileirao = vantagem de casa real do futebol brasileiro.
 PARAMETROS_LIGA = {
     "copa_mundo": ParametrosLiga(
-        media_gols_mandante=1.35, media_gols_visitante=1.35,
+        # mando moderado: o "mandante" do feed marca bem mais (1.89/1.04 em 56 jogos);
+        # o backtest confirma a direção. Valor intermediário p/ hedge de viés de chave/anfitrião.
+        media_gols_mandante=1.55, media_gols_visitante=1.15,
         media_escanteios_time=5.0, media_cartoes_time=2.2,
-        peso_prior=5.0, campo_neutro=True,
+        peso_prior=5.0, campo_neutro=False,
     ),
     "brasileirao_a": ParametrosLiga(
         media_gols_mandante=1.45, media_gols_visitante=1.05,
