@@ -340,13 +340,29 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
                 _rank_card("🧱 Ferrolho", "menos gols totais/jogo", r.get("ferrolho", []), lambda v: f"{v:.2f}") +
                 _rank_card("🟨 Mais cartões", "recebidos/jogo", r.get("cartoes", []), lambda v: f"{v:.1f}") +
                 _rank_card("🏰 Fortes em casa", "% de vitória em casa", r.get("casa", []), lambda v: f"{v:.0%}"))
+
+        sq = t.get("sequencias") or {}
+        scards = ""
+        if any(sq.values()):
+            fj = lambda v: f"{int(v)} jogos"
+            scards = (
+                _rank_card("🛡️ Invictos", "jogos sem perder", sq.get("invicto", []), fj) +
+                _rank_card("✅ Embalados", "vitórias seguidas", sq.get("vitorias", []), fj) +
+                _rank_card("⚽ Marcando sempre", "jogos seguidos marcando", sq.get("marcando", []), fj) +
+                _rank_card("🔒 Sem sofrer", "jogos seguidos sem levar gol", sq.get("clean", []), fj) +
+                _rank_card("📈 Over em série", "jogos seguidos com +2.5", sq.get("over", []), fj) +
+                _rank_card("🤝 BTTS em série", "jogos seguidos com ambas", sq.get("btts", []), fj))
+        seq_html = f'<div class="subhead">🔥 Sequências quentes</div><div class="ranks">{scards}</div>' if scards else ""
+
         n = (t.get("ambiente") or {}).get("n", 0)
+        scout = f'<div class="subhead">🕵️ Scout por xG</div><div class="ranks">{cards}</div>' if cards else ""
         secoes += f"""
       <section class="liga-sec">
         <h2><span>{t['emoji']}</span> {html.escape(t['nome'])}
             <span class="liga-n">{n} jogos disputados</span></h2>
         {_amb_strip(t.get('ambiente'))}
-        <div class="ranks">{cards}</div>
+        {scout}
+        {seq_html}
       </section>"""
     if not secoes:
         secoes = '<p class="vazio">Tendências em coleta…</p>'
@@ -388,7 +404,9 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
     background:var(--panel2); text-align:center; }}
   .stat-v {{ display:block; font-family:'IBM Plex Mono',monospace; font-size:18px; font-weight:600; color:var(--em); }}
   .stat-l {{ display:block; font-size:9.5px; color:var(--mut); text-transform:uppercase; letter-spacing:.6px; margin-top:3px; }}
-  .ranks {{ display:grid; grid-template-columns:1fr; gap:13px; margin-top:16px; }}
+  .subhead {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--mut); margin:24px 0 0; }}
+  .ranks {{ display:grid; grid-template-columns:1fr; gap:13px; margin-top:14px; }}
   @media(min-width:620px) {{ .ranks {{ grid-template-columns:1fr 1fr; }} }}
   @media(min-width:980px) {{ .ranks {{ grid-template-columns:1fr 1fr 1fr 1fr; }} }}
   .rcard {{ border:1px solid var(--line); border-radius:var(--r); padding:13px 14px;

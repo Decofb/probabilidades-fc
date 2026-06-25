@@ -88,6 +88,44 @@ def rankings(reg: list[dict], min_jogos=6) -> dict:
     }
 
 
+def sequencias(reg: list[dict], min_jogos=5) -> dict:
+    """Sequências atuais (a partir do último jogo): invencibilidade, vitórias,
+    marcando, sem sofrer, over 2.5 e BTTS em série. Top times por cada uma."""
+    jogos = defaultdict(list)  # nome -> [(data, res, marcou, sofreu, over, btts)]
+    for r in reg:
+        tot = r["gh"] + r["ga"]
+        btts = r["gh"] >= 1 and r["ga"] >= 1
+        jogos[r["home"]].append((r["data"],
+                                 "V" if r["gh"] > r["ga"] else ("E" if r["gh"] == r["ga"] else "D"),
+                                 r["gh"] >= 1, r["ga"] >= 1, tot >= 3, btts))
+        jogos[r["away"]].append((r["data"],
+                                 "V" if r["ga"] > r["gh"] else ("E" if r["ga"] == r["gh"] else "D"),
+                                 r["ga"] >= 1, r["gh"] >= 1, tot >= 3, btts))
+
+    def streak(seq, cond):
+        c = 0
+        for g in reversed(seq):
+            if cond(g):
+                c += 1
+            else:
+                break
+        return c
+
+    res = {"invicto": [], "vitorias": [], "marcando": [], "clean": [], "over": [], "btts": []}
+    for nome, seq in jogos.items():
+        if len(seq) < min_jogos:
+            continue
+        seq = sorted(seq, key=lambda g: g[0])
+        res["invicto"].append((nome, streak(seq, lambda g: g[1] != "D")))
+        res["vitorias"].append((nome, streak(seq, lambda g: g[1] == "V")))
+        res["marcando"].append((nome, streak(seq, lambda g: g[2])))
+        res["clean"].append((nome, streak(seq, lambda g: not g[3])))
+        res["over"].append((nome, streak(seq, lambda g: g[4])))
+        res["btts"].append((nome, streak(seq, lambda g: g[5])))
+    # so sequencias >= 2 jogos (1 nao e sequencia)
+    return {k: [x for x in sorted(v, key=lambda x: -x[1])[:5] if x[1] >= 2] for k, v in res.items()}
+
+
 def linha_top(titulo, itens, fmt):
     print(f"  {titulo}")
     for nome, val in itens:

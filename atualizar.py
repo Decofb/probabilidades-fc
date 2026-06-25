@@ -246,16 +246,18 @@ def main(offline: bool = False) -> int:
         try:
             from backtest import coletar_registros
             from estudo import estudar
-            from estudo_times import rankings
+            from estudo_times import rankings, sequencias
             d2 = hoje.strftime("%d/%m/%Y")
             d1 = (hoje - timedelta(days=210)).strftime("%d/%m/%Y")
             trends = []
             for lk in LIGAS:
                 reg = coletar_registros(COMPETICOES_365[lk], d1, d2)
+                minj = 3 if lk == "copa_mundo" else 5
                 trends.append({
                     "nome": LIGAS[lk]["nome"], "emoji": LIGAS[lk]["emoji"],
                     "ambiente": estudar(reg),
                     "rankings": rankings(reg) if lk != "copa_mundo" else {},
+                    "sequencias": sequencias(reg, min_jogos=minj),
                 })
             gerar_tendencias(trends, ultima_coleta)
             print("[aba Tendências gerada]")
