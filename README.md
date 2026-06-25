@@ -34,7 +34,26 @@ Mercados por jogo:
 python atualizar.py            # busca do 365scores, gera o site (sai !=0 se nada vier)
 python atualizar.py --offline  # usa só o cache CSV (não acessa a internet)
 python -m pytest -q            # roda a rede de testes do motor
+python backtest.py             # mede o modelo contra resultados reais (calibração)
+python otimizar.py             # acha os melhores parâmetros por evidência
 ```
+
+## Como afiamos as probabilidades (laço de feedback)
+
+O `backtest.py` replica o modelo no passado **sem look-ahead** (só usa dados anteriores
+a cada jogo) e mede, por mercado: **Brier**, **log-loss** e **curva de calibração**,
+comparando com um baseline (prever sempre a taxa-base). Regra de ouro: só se muda o
+modelo se a métrica melhorar.
+
+O `otimizar.py` varre parâmetros (nível de gols, `rho` do Dixon-Coles, dispersão da
+Binomial Negativa) e escolhe por evidência.
+
+**Diagnóstico atual (170 jogos do Brasileirão):**
+- Mercados de **gols** (1X2, Over/Under, BTTS): superam o baseline e estão bem calibrados.
+  A varredura confirmou que os parâmetros atuais já são os melhores — não se mexe.
+- **Escanteios e cartões**: ainda **não superam o baseline**. Estão marcados como
+  *baixa confiança* no site. A Binomial Negativa corrige a sobredispersão (ganho pequeno),
+  mas o sinal em si é fraco — melhoria futura (mais dados, contexto do árbitro).
 
 ## Automação (já configurada)
 

@@ -135,12 +135,16 @@ def _over_lines(lam: float, linhas, dispersao: float | None = None) -> dict[str,
 def calcular_mercados(lam_mandante: float, lam_visitante: float,
                       lam_escanteios: float | None = None,
                       lam_cartoes: float | None = None,
+                      rho: float = RHO_DIXON_COLES,
+                      disp_escanteios: float | None = None,
+                      disp_cartoes: float | None = None,
                       max_gols: int = 10) -> ResultadoMercados:
     """
     Recebe os gols esperados de cada time (lambda) e devolve todas as
-    probabilidades dos mercados.
+    probabilidades dos mercados. rho = correlacao Dixon-Coles; disp_* = dispersao
+    da Binomial Negativa para escanteios/cartoes (None = Poisson).
     """
-    matriz = matriz_placares(lam_mandante, lam_visitante, max_gols)
+    matriz = matriz_placares(lam_mandante, lam_visitante, max_gols, rho)
 
     vit_mandante = empate = vit_visitante = 0.0
     over_05 = over_15 = over_25 = over_35 = 0.0
@@ -184,13 +188,13 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
     esc_esperados = 0.0
     if lam_escanteios is not None and lam_escanteios > 0:
         esc_esperados = lam_escanteios
-        escanteios = _over_lines(lam_escanteios, (7.5, 8.5, 9.5, 10.5, 11.5))
+        escanteios = _over_lines(lam_escanteios, (7.5, 8.5, 9.5, 10.5, 11.5), disp_escanteios)
 
     cartoes = {}
     cart_esperados = 0.0
     if lam_cartoes is not None and lam_cartoes > 0:
         cart_esperados = lam_cartoes
-        cartoes = _over_lines(lam_cartoes, (2.5, 3.5, 4.5, 5.5, 6.5))
+        cartoes = _over_lines(lam_cartoes, (2.5, 3.5, 4.5, 5.5, 6.5), disp_cartoes)
 
     return ResultadoMercados(
         vitoria_mandante=vit_mandante,

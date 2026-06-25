@@ -112,3 +112,24 @@ def test_matriz_soma_aproxima_um():
     mat = matriz_placares(1.5, 1.2)
     total = sum(sum(linha) for linha in mat)
     assert abs(total - 1.0) < TOL
+
+
+# ---------- Binomial Negativa (escanteios/cartoes) ----------
+
+def test_nbinom_soma_um():
+    from motor.poisson import nbinom_pmf
+    s = sum(nbinom_pmf(k, 9.9, 31.7) for k in range(0, 80))
+    assert abs(s - 1.0) < 1e-6
+
+
+def test_escanteios_nb_monotonico():
+    m = calcular_mercados(1.5, 1.2, lam_escanteios=9.5, disp_escanteios=20)
+    vals = [m.escanteios[k] for k in ("over_7_5", "over_8_5", "over_9_5", "over_10_5", "over_11_5")]
+    assert vals == sorted(vals, reverse=True)
+
+
+def test_nb_mais_cauda_que_poisson():
+    # com sobredispersao, P(over numa linha alta) >= Poisson
+    pois = calcular_mercados(1.5, 1.2, lam_cartoes=4.5)
+    nb = calcular_mercados(1.5, 1.2, lam_cartoes=4.5, disp_cartoes=8)
+    assert nb.cartoes["over_6_5"] >= pois.cartoes["over_6_5"] - 1e-9

@@ -42,9 +42,10 @@ def _mercado(label: str, pct: int) -> str:
             f'<span class="m-val">{pct}<i>%</i></span></div>')
 
 
-def _bloco(titulo: str, extra: str, linhas: str) -> str:
+def _bloco(titulo: str, extra: str, linhas: str, baixa_conf: bool = False) -> str:
     extra_html = f'<span class="eyebrow-x">{extra}</span>' if extra else ""
-    return (f'<div class="bloco"><div class="eyebrow">{titulo}{extra_html}</div>{linhas}</div>')
+    chip = '<span class="lowconf" title="o backtest mostra que este mercado ainda não supera o palpite médio">baixa confiança</span>' if baixa_conf else ""
+    return (f'<div class="bloco"><div class="eyebrow">{titulo}{extra_html}{chip}</div>{linhas}</div>')
 
 
 def _linhas_over(d: dict, chaves: list[str], rotulo: str) -> str:
@@ -86,10 +87,10 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
     # escanteios (3 linhas centrais) e cartoes (3 linhas centrais)
     if m.escanteios:
         linhas = _linhas_over(m.escanteios, ["over_8_5", "over_9_5", "over_10_5"], "escanteios")
-        blocos += _bloco("Escanteios", f"esperado {m.escanteios_esperados:.1f}", linhas)
+        blocos += _bloco("Escanteios", f"esperado {m.escanteios_esperados:.1f}", linhas, baixa_conf=True)
     if m.cartoes:
         linhas = _linhas_over(m.cartoes, ["over_3_5", "over_4_5", "over_5_5"], "cartões")
-        blocos += _bloco("Cartões", f"esperado {m.cartoes_esperados:.1f}", linhas)
+        blocos += _bloco("Cartões", f"esperado {m.cartoes_esperados:.1f}", linhas, baixa_conf=True)
 
     return f"""
     <article class="card">
@@ -258,6 +259,8 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .eyebrow {{ display:flex; align-items:baseline; gap:8px; font-family:'IBM Plex Mono',monospace;
     font-size:10px; letter-spacing:1.4px; text-transform:uppercase; color:var(--mut); margin-bottom:9px; }}
   .eyebrow-x {{ color:var(--faint); letter-spacing:.4px; text-transform:none; font-size:10.5px; }}
+  .lowconf {{ margin-left:auto; font-size:8.5px; letter-spacing:.6px; text-transform:uppercase;
+    color:var(--amber); border:1px solid rgba(241,178,74,.32); border-radius:999px; padding:1px 7px; }}
   .m {{ display:flex; align-items:center; gap:10px; margin:5px 0; }}
   .m-lbl {{ width:34%; font-size:12.5px; color:#c2cdda; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }}
   .m-track {{ flex:1; height:6px; border-radius:6px; background:var(--line2); overflow:hidden; }}

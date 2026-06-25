@@ -64,6 +64,10 @@ class ParametrosLiga:
     media_cartoes_time: float = 2.0     # cartoes medios de um time por jogo
     peso_prior: float = 5.0             # k do shrinkage (jogos equivalentes)
     campo_neutro: bool = False
+    # dispersao da Binomial Negativa (estimada empiricamente no otimizar.py).
+    # Sobredispersao leve -> r alto, perto do Poisson. r mais baixo = mais cauda.
+    disp_escanteios: float = 32.0
+    disp_cartoes: float = 15.0
 
     def medias_gol(self) -> tuple[float, float]:
         """(media_mandante, media_visitante) ja tratando campo neutro."""

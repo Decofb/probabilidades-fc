@@ -169,7 +169,10 @@ def main(offline: bool = False) -> int:
             lam_m, lam_v = gols_esperados(tm, tv, liga_params)
             esc = escanteios_esperados(tm, tv, liga_params)
             cart = cartoes_esperados(tm, tv, liga_params)
-            mercados = calcular_mercados(lam_m, lam_v, lam_escanteios=esc, lam_cartoes=cart)
+            mercados = calcular_mercados(
+                lam_m, lam_v, lam_escanteios=esc, lam_cartoes=cart,
+                disp_escanteios=liga_params.disp_escanteios,
+                disp_cartoes=liga_params.disp_cartoes)
 
             margem = arredondar_meio(lam_m - lam_v)
             linha_ha = -margem if margem != 0 else -0.5
