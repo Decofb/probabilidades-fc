@@ -31,7 +31,7 @@ from dados.registro import registrar, id_jogo
 from motor.forca import (EstatisticasTime,
                          gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
-from site_gerador import card_jogo, gerar_site, gerar_tendencias
+from site_gerador import card_jogo, gerar_site, gerar_tendencias, card_dica, gerar_dicas_html
 
 FUSO_BR = timezone(timedelta(hours=-3))
 DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
@@ -159,6 +159,7 @@ def main(offline: bool = False) -> int:
     # junta TODOS os jogos de todas as ligas, com sua data/hora, p/ separar por data
     por_data: dict[str, list[tuple[str, str]]] = {}  # data -> [(hora, card_html)]
     previsoes_log: list[dict] = []
+    dicas_jogos: list = []  # (jogo, mercados, liga_cfg, liga_key) p/ a aba Dicas
     alguma_online = False
 
     for liga_key in LIGAS:
@@ -192,6 +193,7 @@ def main(offline: bool = False) -> int:
 
             card = card_jogo(j, mercados, ha, linha_ha, LIGAS[liga_key])
             por_data.setdefault(j.data, []).append((j.hora, card))
+            dicas_jogos.append((j, mercados, LIGAS[liga_key], liga_key))
 
             def _r4(x):
                 return round(x, 4)
@@ -241,27 +243,50 @@ def main(offline: bool = False) -> int:
     print(f"=== Pronto! {total} jogos no site, separados em {len(grupos)} data(s) ===")
     print(f"Abra: {destino}")
 
-    # aba Tendências (scout dos jogos já disputados) — só online, nunca quebra o site
+    # aba Tendências (scout + padrões dos jogos já disputados) — só online
+    dna_map: dict = {}
     if not offline:
         try:
             from backtest import coletar_registros
             from estudo import estudar
             from estudo_times import rankings, sequencias
+            from padroes import dna_dados, dna_flags_map
             trends = []
             for lk in LIGAS:
                 d1, d2 = janela_liga(lk, 210, hoje)  # janela da temporada atual
                 reg = coletar_registros(COMPETICOES_365[lk], d1, d2)
                 minj = 3 if lk == "copa_mundo" else 5
+                dna_map[lk] = dna_flags_map(reg)
                 trends.append({
                     "nome": LIGAS[lk]["nome"], "emoji": LIGAS[lk]["emoji"],
                     "ambiente": estudar(reg),
                     "rankings": rankings(reg) if lk != "copa_mundo" else {},
                     "sequencias": sequencias(reg, min_jogos=minj),
+                    "dna": dna_dados(reg) if lk != "copa_mundo" else [],
                 })
             gerar_tendencias(trends, ultima_coleta)
             print("[aba Tendências gerada]")
         except Exception as e:
             print(f"[Tendências falhou: {type(e).__name__}: {e}]")
+
+    # aba Dicas (o que explorar) — sempre; reforço pelos padrões quando houver
+    try:
+        from collections import defaultdict
+        from dicas import dicas_do_jogo
+        dpd = defaultdict(list)
+        for j, m, ligacfg, lk in dicas_jogos:
+            ds = dicas_do_jogo(j, m, dna_map.get(lk))
+            if ds:
+                selo = f"{ligacfg.get('emoji', '')} {ligacfg.get('nome', '')}"
+                dpd[j.data].append((j.hora, card_dica(j.mandante, j.visitante, j.hora, selo, ds)))
+        grupos_dicas = []
+        for data_str in sorted(dpd):
+            rot, sub = rotulo_data(data_str, hoje)
+            grupos_dicas.append((rot, sub, [c for _, c in sorted(dpd[data_str])]))
+        gerar_dicas_html(grupos_dicas, ultima_coleta)
+        print(f"[aba Dicas gerada: {sum(len(c) for _, _, c in grupos_dicas)} jogos com dica]")
+    except Exception as e:
+        print(f"[Dicas falhou: {type(e).__name__}: {e}]")
 
     if total == 0:
         print("!! NENHUM jogo calculado - coleta falhou ou sem jogos. (exit 2)")

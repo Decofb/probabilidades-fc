@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Dicas · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root { --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }
+  .nav { display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }
+  .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
+  .nav a:hover { border-color:var(--em); color:var(--bone); }
+  header { text-align:center; padding:28px 18px 6px; }
+  header h1 { margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }
+  header .sub { margin-top:8px; font-size:13px; color:var(--mut); }
+  header .ts { margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }
+  .nota { max-width:760px; margin:16px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
+    border-left:2px solid var(--em); padding-left:13px; }
+  main { max-width:1000px; margin:0 auto; padding:8px 16px 80px; }
+  .daymark { display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
+    padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }
+  .day { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; }
+  .daymark.hoje .day { color:var(--em); }
+  .day-sub { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }
+  .rule { flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
+  .day-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }
+  .grade { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media(min-width:760px) { .grade { grid-template-columns:1fr 1fr; } }
+  .dcard { background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:var(--r); padding:15px; box-shadow:0 18px 40px -22px rgba(0,0,0,.8); }
+  .card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; }
+  .liga-tag { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mut); }
+  .hora { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }
+  .match { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }
+  .team { font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; }
+  .vs { font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); text-transform:uppercase; }
+  .dicas-list { display:flex; flex-direction:column; gap:9px; }
+  .dica { border:1px solid var(--line); border-left:3px solid var(--em); border-radius:10px; padding:9px 12px;
+    background:var(--panel2); }
+  .dica-head { display:flex; justify-content:space-between; align-items:baseline; }
+  .dica-mkt { font-weight:600; font-size:14px; }
+  .dica-pct { font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; }
+  .dica-why { font-size:11.5px; color:var(--mut); margin-top:3px; line-height:1.45; }
+  .dica-why b { color:#c2cdda; font-weight:600; }
+  .vazio { text-align:center; color:var(--mut); margin-top:60px; }
+  footer { text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }
+  footer b { color:var(--em); }
+</style>
+</head>
+<body>
+  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="on" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a></nav>
+  <header>
+    <h1>💡 Dicas</h1>
+    <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
+    <div class="ts">só mercados validados · atualizado 25/06/2026 19:00</div>
+    <div class="nota">Dicas são os mercados onde o modelo tem <b>confiança alta</b> (≥60%) e, quando dá,
+      o padrão do time <b>reforça</b>. Não é garantia — é onde vale focar a sua análise. Aposte com responsabilidade.</div>
+  </header>
+  <main>
+      <section>
+        <div class="daymark hoje"><span class="day">Hoje</span>
+          <span class="day-sub">quinta, 25/06</span><span class="rule"></span>
+          <span class="day-count">1 jogo</span></div>
+        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">20:00</span></div><div class="match"><span class="team">Japão</span><span class="vs">vs</span><span class="team">Suécia</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#34e2a0"><div class="dica-head"><span class="dica-mkt">Over 1.5 gols</span><span class="dica-pct" style="color:#34e2a0">83%</span></div><div class="dica-why">raro sair com menos de 2 gols</div></div></div></article></div>
+      </section>
+      <section>
+        <div class="daymark"><span class="day">Amanhã</span>
+          <span class="day-sub">sexta, 26/06</span><span class="rule"></span>
+          <span class="day-count">2 jogos</span></div>
+        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">16:00</span></div><div class="match"><span class="team">Noruega</span><span class="vs">vs</span><span class="team">França</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#34e2a0"><div class="dica-head"><span class="dica-mkt">Over 1.5 gols</span><span class="dica-pct" style="color:#34e2a0">83%</span></div><div class="dica-why">raro sair com menos de 2 gols</div></div><div class="dica" style="border-left-color:#f1b24a"><div class="dica-head"><span class="dica-mkt">Ambas marcam</span><span class="dica-pct" style="color:#f1b24a">63%</span></div><div class="dica-why">os dois costumam balançar a rede</div></div></div></article><article class="dcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">16:00</span></div><div class="match"><span class="team">Senegal</span><span class="vs">vs</span><span class="team">Iraque</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#f1b24a"><div class="dica-head"><span class="dica-mkt">Over 2.5 gols</span><span class="dica-pct" style="color:#f1b24a">63%</span></div><div class="dica-why">jogo tende a ser aberto</div></div></div></article></div>
+      </section>
+      <section>
+        <div class="daymark"><span class="day">Sábado</span>
+          <span class="day-sub">27/06</span><span class="rule"></span>
+          <span class="day-count">1 jogo</span></div>
+        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">16:00</span></div><div class="match"><span class="team">Criciúma</span><span class="vs">vs</span><span class="team">São Bernardo-SP</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#84cc16"><div class="dica-head"><span class="dica-mkt">Under 2.5 gols</span><span class="dica-pct" style="color:#84cc16">66%</span></div><div class="dica-why">jogo tende a ser truncado</div></div></div></article></div>
+      </section>
+      <section>
+        <div class="daymark"><span class="day">Domingo</span>
+          <span class="day-sub">28/06</span><span class="rule"></span>
+          <span class="day-count">2 jogos</span></div>
+        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">16:00</span></div><div class="match"><span class="team">Atlético-GO</span><span class="vs">vs</span><span class="team">Ponte Preta</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#84cc16"><div class="dica-head"><span class="dica-mkt">Vitória Atlético-GO</span><span class="dica-pct" style="color:#84cc16">68%</span></div><div class="dica-why">favorito claro pelo modelo</div></div><div class="dica" style="border-left-color:#f1b24a"><div class="dica-head"><span class="dica-mkt">Over 2.5 gols</span><span class="dica-pct" style="color:#f1b24a">62%</span></div><div class="dica-why">jogo tende a ser aberto</div></div></div></article><article class="dcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">18:30</span></div><div class="match"><span class="team">Náutico</span><span class="vs">vs</span><span class="team">Goiás</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#34e2a0"><div class="dica-head"><span class="dica-mkt">Over 1.5 gols</span><span class="dica-pct" style="color:#34e2a0">83%</span></div><div class="dica-why">raro sair com menos de 2 gols</div></div><div class="dica" style="border-left-color:#f1b24a"><div class="dica-head"><span class="dica-mkt">Ambas marcam</span><span class="dica-pct" style="color:#f1b24a">62%</span></div><div class="dica-why">os dois costumam balançar a rede</div></div></div></article></div>
+      </section></main>
+  <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>
+</body>
+</html>

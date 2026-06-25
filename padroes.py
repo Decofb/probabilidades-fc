@@ -15,10 +15,16 @@ import sys
 from collections import defaultdict
 from datetime import datetime
 
+from unidecode import unidecode
+
 from config import LIGAS, janela_liga
 from dados.scores365 import COMPETICOES_365
 from backtest import coletar_registros
 from estudo import estudar
+
+
+def _norm(s: str) -> str:
+    return unidecode(s or "").lower().strip()
 
 try:
     sys.stdout.reconfigure(encoding="utf-8")
@@ -97,6 +103,31 @@ def padroes(d, avg) -> list[str]:
         if vc - vf >= 0.35:
             f.append(f"🏰 Casa-dependente ({vc:.0%} casa / {vf:.0%} fora)")
     return f
+
+
+def dna_dados(reg: list[dict], min_jogos=6) -> list[dict]:
+    """DNA de cada time como DADOS (para a seção Padrões do site)."""
+    avg = estudar(reg)
+    t = perfis_detalhados(reg)
+    t = {k: v for k, v in t.items() if v["j"] >= min_jogos}
+    out = []
+    for nm, d in sorted(t.items(), key=lambda kv: -(kv[1]["V"] * 3 + kv[1]["E"])):
+        j = d["j"]
+        out.append({
+            "nome": nm, "j": j, "rec": f"{d['V']}V {d['E']}E {d['D']}D",
+            "gf": d["gf"] / j, "ga": d["ga"] / j,
+            "xg": d["xgf"] / d["xn"] if d["xn"] else None,
+            "over25": d["over25"] / j, "btts": d["btts"] / j, "cs": d["cs"] / j,
+            "flags": padroes(d, avg),
+        })
+    return out
+
+
+def dna_flags_map(reg: list[dict], min_jogos=6) -> dict:
+    """{nome_normalizado: [padroes]} — para reforçar as dicas."""
+    avg = estudar(reg)
+    t = perfis_detalhados(reg)
+    return {_norm(nm): padroes(d, avg) for nm, d in t.items() if d["j"] >= min_jogos}
 
 
 def relatar(nome, reg, min_jogos=6):

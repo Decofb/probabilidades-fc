@@ -17,6 +17,14 @@ from dados.jogos import Jogo  # noqa: E402
 from motor.poisson import ResultadoMercados  # noqa: E402
 
 
+def _nav(ativo: str) -> str:
+    itens = [("index.html", "⚽ Jogos", "jogos"), ("dicas.html", "💡 Dicas", "dicas"),
+             ("tendencias.html", "📊 Tendências", "tend")]
+    links = "".join(f'<a class="{"on" if k == ativo else ""}" href="{href}">{txt}</a>'
+                    for href, txt, k in itens)
+    return f'<nav class="nav">{links}</nav>'
+
+
 def _tom(pct: int) -> str:
     """Esmeralda com intensidade proporcional ao % (barras secundarias)."""
     a = 0.30 + 0.62 * (max(0, min(pct, 100)) / 100)
@@ -277,7 +285,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 </style>
 </head>
 <body>
-  <nav class="nav"><a class="on" href="index.html">⚽ Jogos</a><a href="tendencias.html">📊 Tendências</a></nav>
+  {_nav("jogos")}
   <header>
     <div class="brand">{marca}</div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
@@ -324,6 +332,19 @@ def _rank_card(titulo, sub, itens, fmt) -> str:
             f'<span class="eyebrow-x">{sub}</span></div><ol class="rk">{lis}</ol></div>')
 
 
+def _dna_card(t) -> str:
+    xg = f" · xG {t['xg']:.2f}" if t.get("xg") else ""
+    if t.get("flags"):
+        flags = "".join(f'<span class="dna-flag">{f}</span>' for f in t["flags"])
+        flags_html = f'<div class="dna-flags">{flags}</div>'
+    else:
+        flags_html = '<div class="dna-flags dim">sem padrão marcante</div>'
+    return (f'<div class="dna-card"><div class="dna-top"><b>{html.escape(t["nome"])}</b>'
+            f'<span class="dna-rec">{t["rec"]}</span></div>'
+            f'<div class="dna-stats">⚔️ {t["gf"]:.2f}{xg} · 🛡️ {t["ga"]:.2f} · '
+            f'O2.5 {t["over25"]:.0%} · BTTS {t["btts"]:.0%} · CS {t["cs"]:.0%}</div>{flags_html}</div>')
+
+
 def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
     """trends = lista de {nome, emoji, ambiente(dict estudar), rankings(dict)}."""
     secoes = ""
@@ -354,6 +375,13 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
                 _rank_card("🤝 BTTS em série", "jogos seguidos com ambas", sq.get("btts", []), fj))
         seq_html = f'<div class="subhead">🔥 Sequências quentes</div><div class="ranks">{scards}</div>' if scards else ""
 
+        dna = t.get("dna") or []
+        dna_html = ""
+        if dna:
+            cards_dna = "".join(_dna_card(x) for x in dna)
+            dna_html = (f'<details class="padroes"><summary>🧬 Padrões de cada time ({len(dna)}) — clique para abrir</summary>'
+                        f'<div class="dna-grid">{cards_dna}</div></details>')
+
         n = (t.get("ambiente") or {}).get("n", 0)
         scout = f'<div class="subhead">🕵️ Scout por xG</div><div class="ranks">{cards}</div>' if cards else ""
         secoes += f"""
@@ -363,6 +391,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
         {_amb_strip(t.get('ambiente'))}
         {scout}
         {seq_html}
+        {dna_html}
       </section>"""
     if not secoes:
         secoes = '<p class="vazio">Tendências em coleta…</p>'
@@ -420,6 +449,22 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
   .rk li:first-child {{ border-top:none; }}
   .rk-n {{ color:#c2cdda; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
   .rk-v {{ font-family:'IBM Plex Mono',monospace; color:var(--em); font-variant-numeric:tabular-nums; }}
+  details.padroes {{ margin-top:20px; border-top:1px solid var(--line2); }}
+  details.padroes summary {{ cursor:pointer; font-family:'IBM Plex Mono',monospace; font-size:11px;
+    letter-spacing:1px; text-transform:uppercase; color:var(--em); padding:14px 0 4px; list-style:none; }}
+  details.padroes summary::-webkit-details-marker {{ display:none; }}
+  .dna-grid {{ display:grid; grid-template-columns:1fr; gap:10px; margin-top:12px; }}
+  @media(min-width:620px) {{ .dna-grid {{ grid-template-columns:1fr 1fr; }} }}
+  @media(min-width:980px) {{ .dna-grid {{ grid-template-columns:1fr 1fr 1fr; }} }}
+  .dna-card {{ border:1px solid var(--line); border-radius:12px; padding:11px 13px; background:var(--panel2); }}
+  .dna-top {{ display:flex; justify-content:space-between; align-items:baseline; gap:8px; }}
+  .dna-top b {{ font-family:'Space Grotesk',sans-serif; font-size:14px; }}
+  .dna-rec {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); white-space:nowrap; }}
+  .dna-stats {{ font-size:11px; color:var(--mut); margin:6px 0 8px; line-height:1.5; }}
+  .dna-flags {{ display:flex; flex-wrap:wrap; gap:5px; }}
+  .dna-flags.dim {{ color:var(--faint); font-size:11px; }}
+  .dna-flag {{ font-size:10.5px; background:rgba(52,226,160,.08); border:1px solid rgba(52,226,160,.22);
+    color:#bfe9d6; padding:2px 8px; border-radius:999px; }}
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
   .nota {{ max-width:760px; margin:18px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
     border-left:2px solid var(--em); padding-left:13px; }}
@@ -429,7 +474,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
 </style>
 </head>
 <body>
-  <nav class="nav"><a href="index.html">⚽ Jogos</a><a class="on" href="tendencias.html">📊 Tendências</a></nav>
+  {_nav("tend")}
   <header>
     <h1>📊 Tendências</h1>
     <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
@@ -443,5 +488,132 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
 </body>
 </html>"""
     destino = PASTA_SITE / "tendencias.html"
+    destino.write_text(doc, encoding="utf-8")
+    return destino
+
+
+# ===================== ABA DICAS =====================
+
+def _cor_dica(pct: int) -> str:
+    if pct >= 72:
+        return "#34e2a0"
+    if pct >= 64:
+        return "#84cc16"
+    return "#f1b24a"
+
+
+def card_dica(nome_m, nome_v, hora, liga_sel, dicas) -> str:
+    linhas = ""
+    for d in dicas:
+        pct = round(d["p"] * 100)
+        cor = _cor_dica(pct)
+        why = html.escape(d["motivo"])
+        if d.get("reforco"):
+            why += f' · <b>{html.escape(d["reforco"])}</b>'
+        linhas += (f'<div class="dica" style="border-left-color:{cor}">'
+                   f'<div class="dica-head"><span class="dica-mkt">{html.escape(d["mercado"])}</span>'
+                   f'<span class="dica-pct" style="color:{cor}">{pct}%</span></div>'
+                   f'<div class="dica-why">{why}</div></div>')
+    return (f'<article class="dcard">'
+            f'<div class="card-top"><span class="liga-tag">{liga_sel}</span>'
+            f'<span class="hora">{html.escape(hora or "")}</span></div>'
+            f'<div class="match"><span class="team">{html.escape(nome_m)}</span>'
+            f'<span class="vs">vs</span><span class="team">{html.escape(nome_v)}</span></div>'
+            f'<div class="dicas-list">{linhas}</div></article>')
+
+
+def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
+    """grupos_data = lista de (rotulo, subtitulo, [card_html])."""
+    nomes = {"HOJE": "Hoje", "AMANHÃ": "Amanhã"}
+    secoes = ""
+    for rotulo, subtitulo, cards in grupos_data:
+        if not cards:
+            continue
+        titulo = nomes.get(rotulo, rotulo)
+        cls = "daymark hoje" if rotulo == "HOJE" else "daymark"
+        secoes += f"""
+      <section>
+        <div class="{cls}"><span class="day">{titulo}</span>
+          <span class="day-sub">{subtitulo}</span><span class="rule"></span>
+          <span class="day-count">{len(cards)} jogo{'s' if len(cards) != 1 else ''}</span></div>
+        <div class="grade">{''.join(cards)}</div>
+      </section>"""
+    if not secoes:
+        secoes = '<p class="vazio">Sem dicas de alta confiança para hoje ou amanhã — jogos muito equilibrados.</p>'
+
+    doc = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Dicas · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
+  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+  .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
+  .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  header {{ text-align:center; padding:28px 18px 6px; }}
+  header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
+  header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
+  header .ts {{ margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }}
+  .nota {{ max-width:760px; margin:16px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
+    border-left:2px solid var(--em); padding-left:13px; }}
+  main {{ max-width:1000px; margin:0 auto; padding:8px 16px 80px; }}
+  .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
+    padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }}
+  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; }}
+  .daymark.hoje .day {{ color:var(--em); }}
+  .day-sub {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }}
+  .rule {{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }}
+  .day-count {{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }}
+  .grade {{ display:grid; grid-template-columns:1fr; gap:14px; }}
+  @media(min-width:760px) {{ .grade {{ grid-template-columns:1fr 1fr; }} }}
+  .dcard {{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:var(--r); padding:15px; box-shadow:0 18px 40px -22px rgba(0,0,0,.8); }}
+  .card-top {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:9px; }}
+  .liga-tag {{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mut); }}
+  .hora {{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }}
+  .match {{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:12px; }}
+  .team {{ font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:16px; }}
+  .vs {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); text-transform:uppercase; }}
+  .dicas-list {{ display:flex; flex-direction:column; gap:9px; }}
+  .dica {{ border:1px solid var(--line); border-left:3px solid var(--em); border-radius:10px; padding:9px 12px;
+    background:var(--panel2); }}
+  .dica-head {{ display:flex; justify-content:space-between; align-items:baseline; }}
+  .dica-mkt {{ font-weight:600; font-size:14px; }}
+  .dica-pct {{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; }}
+  .dica-why {{ font-size:11.5px; color:var(--mut); margin-top:3px; line-height:1.45; }}
+  .dica-why b {{ color:#c2cdda; font-weight:600; }}
+  .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
+  footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
+  footer b {{ color:var(--em); }}
+</style>
+</head>
+<body>
+  {_nav("dicas")}
+  <header>
+    <h1>💡 Dicas</h1>
+    <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
+    <div class="ts">só mercados validados · atualizado {data_geracao}</div>
+    <div class="nota">Dicas são os mercados onde o modelo tem <b>confiança alta</b> (≥60%) e, quando dá,
+      o padrão do time <b>reforça</b>. Não é garantia — é onde vale focar a sua análise. Aposte com responsabilidade.</div>
+  </header>
+  <main>{secoes}</main>
+  <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>
+</body>
+</html>"""
+    destino = PASTA_SITE / "dicas.html"
     destino.write_text(doc, encoding="utf-8")
     return destino
