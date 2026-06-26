@@ -1,6 +1,4 @@
 data,hora,mandante,visitante,rodada
-2026-06-25,23:00,Paraguai,Austrália,Rodada
-2026-06-25,23:00,Turquia,EUA,Rodada
 2026-06-26,16:00,Noruega,França,Rodada
 2026-06-26,16:00,Senegal,Iraque,Rodada
 2026-06-26,21:00,Uruguai,Espanha,Rodada
@@ -14,3 +12,5 @@ data,hora,mandante,visitante,rodada
 2026-06-27,23:00,Argélia,Áustria,Rodada
 2026-06-27,23:00,Jordânia,Argentina,Rodada
 2026-06-28,16:00,África do Sul,Canadá,Rodada
+2026-06-29,14:00,Brasil,Japão,Rodada
+2026-06-29,22:00,Holanda,Marrocos,Rodada
