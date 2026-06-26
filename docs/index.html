@@ -109,6 +109,21 @@
     font-weight:500; color:var(--bone); font-variant-numeric:tabular-nums; }
   .m-val i { font-style:normal; color:var(--faint); font-size:10px; margin-left:1px; }
 
+  .mkt-row { display:flex; align-items:center; gap:10px; margin:11px 0 0; padding:8px 12px;
+    border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.02); }
+  .mkt-lbl { font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap; }
+  .mkt-vals { display:flex; align-items:center; gap:7px; flex:1; justify-content:center; }
+  .mkt-m { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#43efb0; font-variant-numeric:tabular-nums; }
+  .mkt-e { font-family:'IBM Plex Mono',monospace; font-size:13px; color:#aab6c6; font-variant-numeric:tabular-nums; }
+  .mkt-v { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); font-variant-numeric:tabular-nums; }
+  .mkt-m i,.mkt-e i,.mkt-v i { font-style:normal; font-size:9px; color:var(--faint); }
+  .mkt-sep { color:var(--faint); font-size:11px; }
+  .mkt-mg { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--faint); white-space:nowrap; }
+  .delta-val { display:block; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px;
+    letter-spacing:.5px; color:#34e2a0; padding:3px 10px; border-radius:6px;
+    background:rgba(52,226,160,.09); border:1px solid rgba(52,226,160,.2); }
+
   .readout { display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px;
     border-top:1px solid var(--line2); font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); letter-spacing:.3px; }
   .readout b { color:#c2cdda; font-weight:600; }
@@ -130,7 +145,7 @@
   <header>
     <div class="brand"><img class="logo-full" src="logo.png" alt="Probabilidades FC"></div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
-    <div class="status"><span>Poisson · Dixon-Coles</span><span class="dot"></span><span>Atualizado 26/06/2026 08:42</span></div>
+    <div class="status"><span>Poisson · Dixon-Coles</span><span class="dot"></span><span>Atualizado 26/06/2026 09:37</span></div>
     <div class="nota">Mostramos só os mercados validados por backtest (resultado, gols e ambas marcam) —
       escanteios e cartões saíram porque não superaram o palpite médio nos testes. As porcentagens são
       estimativas estatísticas (gols e xG do histórico recente); não são garantia — futebol tem zebra. Aposte com responsabilidade.</div>
@@ -172,6 +187,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:83%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">83<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:60%;background:rgba(52,226,160,0.67)"></span></span><span class="m-val">60<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:63%;background:rgba(52,226,160,0.69)"></span></span><span class="m-val">63<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">21<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">21<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">59<i>%</i></span></span><span class="mkt-mg">1.6% mg</span></div>
+      <span class="delta-val">↑ +22pp vs mkt em Noruega</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 11%</span>
@@ -205,6 +222,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:84%;background:rgba(52,226,160,0.82)"></span></span><span class="m-val">84<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:63%;background:rgba(52,226,160,0.69)"></span></span><span class="m-val">63<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">79<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">14<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">7<i>%</i></span></span><span class="mkt-mg">0.7% mg</span></div>
+      <span class="delta-val">↑ +14pp vs mkt em Iraque</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 10%</span>
@@ -238,6 +257,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:91%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">91<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:72%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">72<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:46%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">46<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">47<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">29<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">24<i>%</i></span></span><span class="mkt-mg">1.4% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -271,6 +292,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:74%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">74<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:48%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">48<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">36<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">29<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">35<i>%</i></span></span><span class="mkt-mg">3.3% mg</span></div>
+      <span class="delta-val">↑ +14pp vs mkt em Cabo Verde</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -304,6 +327,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:91%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">91<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:72%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">72<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:46%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">46<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:52%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">52<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">16<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">26<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">59<i>%</i></span></span><span class="mkt-mg">2.1% mg</span></div>
+      <span class="delta-val">↑ +20pp vs mkt em Uruguai</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -346,6 +371,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:75%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">75<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:50%;background:rgba(52,226,160,0.61)"></span></span><span class="m-val">50<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:53%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">53<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">39<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">36<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">25<i>%</i></span></span><span class="mkt-mg">2.9% mg</span></div>
+      <span class="delta-val">↑ +12pp vs mkt em Egito</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 12%</span>
@@ -379,6 +406,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:74%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">74<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:48%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">48<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:53%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">53<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">6<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">12<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">82<i>%</i></span></span><span class="mkt-mg">1.5% mg</span></div>
+      <span class="delta-val">↑ +32pp vs mkt em Nova Zelândia</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -412,6 +441,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:82%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">82<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:59%;background:rgba(52,226,160,0.67)"></span></span><span class="m-val">59<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">51<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">28<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">21<i>%</i></span></span><span class="mkt-mg">2.3% mg</span></div>
+      <span class="delta-val">↑ +8pp vs mkt em América-MG</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 11%</span>
@@ -445,6 +476,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:86%;background:rgba(52,226,160,0.83)"></span></span><span class="m-val">86<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:34%;background:rgba(52,226,160,0.51)"></span></span><span class="m-val">34<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:42%;background:rgba(52,226,160,0.56)"></span></span><span class="m-val">42<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">58<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">25<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">16<i>%</i></span></span><span class="mkt-mg">1.1% mg</span></div>
+      <span class="delta-val">↑ +15pp vs mkt em São Bernardo-SP</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -478,6 +511,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:70%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">70<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:43%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">43<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">54<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">29<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">16<i>%</i></span></span><span class="mkt-mg">1.0% mg</span></div>
+      <span class="delta-val">↑ +14pp vs mkt em Gana</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -511,6 +546,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:69%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">69<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:42%;background:rgba(52,226,160,0.56)"></span></span><span class="m-val">42<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">4<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">12<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">84<i>%</i></span></span><span class="mkt-mg">1.4% mg</span></div>
+      <span class="delta-val">↑ +24pp vs mkt em Panamá</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -544,6 +581,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:91%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">91<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:72%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">72<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:46%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">46<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">23<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">26<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">51<i>%</i></span></span><span class="mkt-mg">3.0% mg</span></div>
+      <span class="delta-val">↑ +17pp vs mkt em Colômbia</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -577,6 +616,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:74%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">74<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:48%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">48<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">54<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">25<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">21<i>%</i></span></span><span class="mkt-mg">1.7% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>1–0</b> · 12%</span>
@@ -610,6 +651,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:74%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">74<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:53%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">53<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">24<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">43<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">33<i>%</i></span></span><span class="mkt-mg">3.1% mg</span></div>
+      <span class="delta-val">↑ +21pp vs mkt em Argélia</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -643,6 +686,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:73%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">73<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:47%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">47<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">5<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">13<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">82<i>%</i></span></span><span class="mkt-mg">1.8% mg</span></div>
+      <span class="delta-val">↑ +20pp vs mkt em Jordânia</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -685,6 +730,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:91%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">91<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:73%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">73<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:47%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">47<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:52%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">52<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">18<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">26<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">56<i>%</i></span></span><span class="mkt-mg">3.4% mg</span></div>
+      <span class="delta-val">↑ +12pp vs mkt em África do Sul</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -718,6 +765,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:88%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">88<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:65%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">65<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:38%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">38<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:44%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">44<i>%</i></span></div></div>
+      
+      
 
       <div class="readout">
         <span>Placar provável <b>1–0</b> · 14%</span>
@@ -751,6 +800,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:84%;background:rgba(52,226,160,0.82)"></span></span><span class="m-val">84<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:55%;background:rgba(52,226,160,0.64)"></span></span><span class="m-val">55<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">67<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">21<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">12<i>%</i></span></span><span class="mkt-mg">1.7% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>2–0</b> · 11%</span>
@@ -784,6 +835,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:89%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">89<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:67%;background:rgba(52,226,160,0.72)"></span></span><span class="m-val">67<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:40%;background:rgba(52,226,160,0.55)"></span></span><span class="m-val">40<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:45%;background:rgba(52,226,160,0.58)"></span></span><span class="m-val">45<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">45<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">30<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">24<i>%</i></span></span><span class="mkt-mg">5.0% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -817,6 +870,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:70%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">70<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:43%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">43<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:50%;background:rgba(52,226,160,0.61)"></span></span><span class="m-val">50<i>%</i></span></div></div>
+      
+      
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 14%</span>
@@ -850,6 +905,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:83%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">83<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">51<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">27<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">22<i>%</i></span></span><span class="mkt-mg">1.3% mg</span></div>
+      <span class="delta-val">↑ +5pp vs mkt em Goiás</span>
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 11%</span>
@@ -892,6 +949,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:91%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">91<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:73%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">73<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:47%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">47<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:50%;background:rgba(52,226,160,0.61)"></span></span><span class="m-val">50<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">55<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">26<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">19<i>%</i></span></span><span class="mkt-mg">1.9% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 13%</span>
@@ -925,6 +984,8 @@
       </div>
 
       <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:94%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">94<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:79%;background:rgba(52,226,160,0.79)"></span></span><span class="m-val">79<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:55%;background:rgba(52,226,160,0.64)"></span></span><span class="m-val">55<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:57%;background:rgba(52,226,160,0.65)"></span></span><span class="m-val">57<i>%</i></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado</span><span class="mkt-vals"><span class="mkt-m">44<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-e">29<i>%</i></span><span class="mkt-sep">·</span><span class="mkt-v">27<i>%</i></span></span><span class="mkt-mg">3.4% mg</span></div>
+      
 
       <div class="readout">
         <span>Placar provável <b>1–1</b> · 12%</span>

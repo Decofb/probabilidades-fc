@@ -55,7 +55,35 @@ def _bloco(titulo: str, extra: str, linhas: str) -> str:
     return (f'<div class="bloco"><div class="eyebrow">{titulo}{extra_html}</div>{linhas}</div>')
 
 
-def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None) -> str:
+def _mercado_row(mkt) -> str:
+    """Linha 'MERCADO' compacta — probabilidades implícitas do Oddschecker."""
+    if mkt is None:
+        return ""
+    pm, pe, pv = round(mkt.pm * 100), round(mkt.pe * 100), round(mkt.pv * 100)
+    mg = round(mkt.margem * 100, 1)
+    return (f'<div class="mkt-row">'
+            f'<span class="mkt-lbl">Mercado</span>'
+            f'<span class="mkt-vals">'
+            f'<span class="mkt-m">{pm}<i>%</i></span>'
+            f'<span class="mkt-sep">·</span>'
+            f'<span class="mkt-e">{pe}<i>%</i></span>'
+            f'<span class="mkt-sep">·</span>'
+            f'<span class="mkt-v">{pv}<i>%</i></span>'
+            f'</span>'
+            f'<span class="mkt-mg">{mg}% mg</span>'
+            f'</div>')
+
+
+def _delta_tag(p_modelo: float, p_mkt: float, nome: str) -> str:
+    """Tag de delta se o modelo vê vantagem ≥5pp sobre o mercado."""
+    d = round((p_modelo - p_mkt) * 100)
+    if d >= 5:
+        return f'<span class="delta-val">↑ +{d}pp vs mkt em {nome}</span>'
+    return ""
+
+
+def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
+              mercado=None) -> str:
     nome_m = html.escape(j.mandante)
     nome_v = html.escape(j.visitante)
     pm, pe, pv = m.pct(m.vitoria_mandante), m.pct(m.empate), m.pct(m.vitoria_visitante)
@@ -73,10 +101,13 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None) -> st
             _mercado("+2.5 gols", m.pct(m.over_25)) + _mercado("Ambas marcam", m.pct(m.ambas_marcam)))
     blocos = _bloco("Gols", "total da partida", gols)
 
-    # Handicap asiático foi removido a pedido (pouca utilidade percebida).
-    # Escanteios e cartoes NAO sao exibidos: o backtest mostrou que nao superam
-    # o baseline. Continuam sendo calculados e logados (registro) para reavaliacao
-    # futura, mas ficam fora do site enquanto nao forem calibrados.
+    mkt_html = _mercado_row(mercado)
+
+    # delta mais saliente (mandante ou visitante)
+    delta_html = ""
+    if mercado is not None:
+        delta_html = (_delta_tag(m.vitoria_mandante, mercado.pm, j.mandante) or
+                      _delta_tag(m.vitoria_visitante, mercado.pv, j.visitante))
 
     return f"""
     <article class="card">
@@ -106,6 +137,8 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None) -> st
       </div>
 
       {blocos}
+      {mkt_html}
+      {delta_html}
 
       <div class="readout">
         <span>Placar provável <b>{m.placar_provavel[0]}–{m.placar_provavel[1]}</b> · {m.pct(m.prob_placar_provavel)}%</span>
@@ -259,6 +292,21 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .m-val {{ width:44px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;
     font-weight:500; color:var(--bone); font-variant-numeric:tabular-nums; }}
   .m-val i {{ font-style:normal; color:var(--faint); font-size:10px; margin-left:1px; }}
+
+  .mkt-row {{ display:flex; align-items:center; gap:10px; margin:11px 0 0; padding:8px 12px;
+    border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.02); }}
+  .mkt-lbl {{ font-family:'IBM Plex Mono',monospace; font-size:9.5px; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap; }}
+  .mkt-vals {{ display:flex; align-items:center; gap:7px; flex:1; justify-content:center; }}
+  .mkt-m {{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#43efb0; font-variant-numeric:tabular-nums; }}
+  .mkt-e {{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:#aab6c6; font-variant-numeric:tabular-nums; }}
+  .mkt-v {{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); font-variant-numeric:tabular-nums; }}
+  .mkt-m i,.mkt-e i,.mkt-v i {{ font-style:normal; font-size:9px; color:var(--faint); }}
+  .mkt-sep {{ color:var(--faint); font-size:11px; }}
+  .mkt-mg {{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--faint); white-space:nowrap; }}
+  .delta-val {{ display:block; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px;
+    letter-spacing:.5px; color:#34e2a0; padding:3px 10px; border-radius:6px;
+    background:rgba(52,226,160,.09); border:1px solid rgba(52,226,160,.2); }}
 
   .readout {{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px;
     border-top:1px solid var(--line2); font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); letter-spacing:.3px; }}
@@ -504,10 +552,14 @@ def card_dica(nome_m, nome_v, hora, liga_sel, dicas) -> str:
         why = html.escape(d["motivo"])
         if d.get("reforco"):
             why += f' · <b>{html.escape(d["reforco"])}</b>'
+        valor_badge = '<span class="valor-badge">💰 VALOR vs mercado</span>' if d.get("tem_valor") else ""
         linhas += (f'<div class="dica" style="border-left-color:{cor}">'
                    f'<div class="dica-head"><span class="dica-mkt">{html.escape(d["mercado"])}</span>'
                    f'<span class="dica-pct" style="color:{cor}">{pct}%</span></div>'
+                   f'<div class="dica-badges">'
                    f'<div class="dica-conf {cls}">{conf}</div>'
+                   f'{valor_badge}'
+                   f'</div>'
                    f'<div class="dica-why">{why}</div></div>')
     return (f'<article class="dcard">'
             f'<div class="card-top"><span class="liga-tag">{liga_sel}</span>'
@@ -588,10 +640,14 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
   .dica-head {{ display:flex; justify-content:space-between; align-items:baseline; }}
   .dica-mkt {{ font-weight:600; font-size:14px; }}
   .dica-pct {{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:17px; font-variant-numeric:tabular-nums; }}
+  .dica-badges {{ display:flex; flex-wrap:wrap; gap:6px; align-items:center; margin-top:7px; }}
   .dica-conf {{ display:inline-block; font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1px;
-    text-transform:uppercase; padding:2px 9px; border-radius:999px; margin-top:7px; }}
+    text-transform:uppercase; padding:2px 9px; border-radius:999px; }}
   .dica-conf.alta {{ color:#04130d; background:var(--em); font-weight:600; }}
   .dica-conf.media {{ color:var(--amber); border:1px solid rgba(241,178,74,.4); }}
+  .valor-badge {{ font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:.6px;
+    text-transform:uppercase; padding:2px 9px; border-radius:999px;
+    background:rgba(241,178,74,.15); color:var(--amber); border:1px solid rgba(241,178,74,.4); }}
   .dica-why {{ font-size:11.5px; color:var(--mut); margin-top:6px; line-height:1.45; }}
   .dica-why b {{ color:#c2cdda; font-weight:600; }}
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}

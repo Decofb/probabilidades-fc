@@ -159,6 +159,17 @@ def main(offline: bool = False) -> int:
     hoje = agora_dt.date()
     print(f"\n=== Atualizando Probabilidades FC ({agora}) ===\n")
 
+    # Busca odds do mercado (Oddschecker) para comparação Cérebro vs Mercado
+    mercado_odds: dict = {}
+    if not offline:
+        try:
+            from dados.oddschecker import buscar_mercado
+            print("[Oddschecker]")
+            mercado_odds = buscar_mercado()
+            print(f"  -> {len(mercado_odds)} jogos com odds do mercado\n")
+        except Exception as e:
+            print(f"  [Oddschecker falhou: {type(e).__name__}] seguindo sem odds\n")
+
     # 1) concilia previsoes anteriores com o resultado real (so online)
     if not offline:
         try:
@@ -200,9 +211,18 @@ def main(offline: bool = False) -> int:
                 disp_escanteios=liga_params.disp_escanteios,
                 disp_cartoes=liga_params.disp_cartoes)
 
-            card = card_jogo(j, mercados, LIGAS[liga_key])
+            # Odds do mercado para este jogo (fuzzy match)
+            mkt_jogo = None
+            if mercado_odds:
+                try:
+                    from dados.oddschecker import lookup_mercado
+                    mkt_jogo = lookup_mercado(j.data, j.mandante, j.visitante, mercado_odds)
+                except Exception:
+                    pass
+
+            card = card_jogo(j, mercados, LIGAS[liga_key], mercado=mkt_jogo)
             por_data.setdefault(j.data, []).append((j.hora, card))
-            dicas_jogos.append((j, mercados, LIGAS[liga_key], liga_key))
+            dicas_jogos.append((j, mercados, LIGAS[liga_key], liga_key, mkt_jogo))
 
             def _r4(x):
                 return round(x, 4)
@@ -283,8 +303,8 @@ def main(offline: bool = False) -> int:
         from collections import defaultdict
         from dicas import dicas_do_jogo
         dpd = defaultdict(list)
-        for j, m, ligacfg, lk in dicas_jogos:
-            ds = dicas_do_jogo(j, m, perfis_liga.get(lk))
+        for j, m, ligacfg, lk, mkt in dicas_jogos:
+            ds = dicas_do_jogo(j, m, perfis_liga.get(lk), mercado_odds=mkt)
             if ds:
                 selo = f"{ligacfg.get('emoji', '')} {ligacfg.get('nome', '')}"
                 dpd[j.data].append((j.hora, card_dica(j.mandante, j.visitante, j.hora, selo, ds)))

@@ -1,0 +1,320 @@
+{
+  "gerado_em": "2026-06-26T09:30:39.089552",
+  "dados": {
+    "2026-06-26|noruega|franca": {
+      "odd_m": 4.75,
+      "odd_e": 4.75,
+      "odd_v": 1.68,
+      "pm": 0.2072,
+      "pe": 0.2072,
+      "pv": 0.5857,
+      "margem": 0.0163
+    },
+    "2026-06-26|senegal|iraque": {
+      "odd_m": 1.25,
+      "odd_e": 7.25,
+      "odd_v": 14.5,
+      "pm": 0.7945,
+      "pe": 0.137,
+      "pv": 0.0685,
+      "margem": 0.0069
+    },
+    "2026-06-26|uruguai|espanha": {
+      "odd_m": 6.3,
+      "odd_e": 3.8,
+      "odd_v": 1.67,
+      "pm": 0.1555,
+      "pe": 0.2578,
+      "pv": 0.5867,
+      "margem": 0.0207
+    },
+    "2026-06-26|cabo verde|arabia saudita": {
+      "odd_m": 2.7,
+      "odd_e": 3.3,
+      "odd_v": 2.78,
+      "pm": 0.3585,
+      "pe": 0.2933,
+      "pv": 0.3482,
+      "margem": 0.0331
+    },
+    "2026-06-27|nova zelandia|belgica": {
+      "odd_m": 16.5,
+      "odd_e": 8.25,
+      "odd_v": 1.2,
+      "pm": 0.0597,
+      "pe": 0.1194,
+      "pv": 0.8209,
+      "margem": 0.0152
+    },
+    "2026-06-27|egito|ira": {
+      "odd_m": 2.5,
+      "odd_e": 2.68,
+      "odd_v": 3.9,
+      "pm": 0.3885,
+      "pe": 0.3624,
+      "pv": 0.2491,
+      "margem": 0.0295
+    },
+    "2026-06-27|croacia|gana": {
+      "odd_m": 1.82,
+      "odd_e": 3.4,
+      "odd_v": 6.0,
+      "pm": 0.5439,
+      "pe": 0.2911,
+      "pv": 0.165,
+      "margem": 0.0102
+    },
+    "2026-06-27|panama|inglaterra": {
+      "odd_m": 22.0,
+      "odd_e": 8.25,
+      "odd_v": 1.18,
+      "pm": 0.0448,
+      "pe": 0.1195,
+      "pv": 0.8357,
+      "margem": 0.0141
+    },
+    "2026-06-27|rd congo|uzbequistao": {
+      "odd_m": 1.82,
+      "odd_e": 4.0,
+      "odd_v": 4.6,
+      "pm": 0.5404,
+      "pe": 0.2459,
+      "pv": 0.2138,
+      "margem": 0.0168
+    },
+    "2026-06-27|colombia|portugal": {
+      "odd_m": 4.25,
+      "odd_e": 3.72,
+      "odd_v": 1.9,
+      "pm": 0.2283,
+      "pe": 0.2609,
+      "pv": 0.5108,
+      "margem": 0.0304
+    },
+    "2026-06-27|argelia|austria": {
+      "odd_m": 4.1,
+      "odd_e": 2.25,
+      "odd_v": 2.92,
+      "pm": 0.2366,
+      "pe": 0.4312,
+      "pv": 0.3322,
+      "margem": 0.0308
+    },
+    "2026-06-27|jordania|argentina": {
+      "odd_m": 19.5,
+      "odd_e": 7.5,
+      "odd_v": 1.2,
+      "pm": 0.0504,
+      "pe": 0.131,
+      "pv": 0.8186,
+      "margem": 0.0179
+    },
+    "2026-06-28|africa do sul|canada": {
+      "odd_m": 5.5,
+      "odd_e": 3.7,
+      "odd_v": 1.72,
+      "pm": 0.1759,
+      "pe": 0.2615,
+      "pv": 0.5626,
+      "margem": 0.0335
+    },
+    "2026-06-29|brasil|japao": {
+      "odd_m": 1.78,
+      "odd_e": 3.75,
+      "odd_v": 5.25,
+      "pm": 0.5514,
+      "pe": 0.2617,
+      "pv": 0.1869,
+      "margem": 0.0189
+    },
+    "2026-06-29|holanda|marrocos": {
+      "odd_m": 2.18,
+      "odd_e": 3.35,
+      "odd_v": 3.62,
+      "pm": 0.4439,
+      "pe": 0.2888,
+      "pv": 0.2673,
+      "margem": 0.0335
+    },
+    "2026-07-01|estados unidos|bosnia herzegovina": {
+      "odd_m": 1.5,
+      "odd_e": 4.4,
+      "odd_v": 7.5,
+      "pm": 0.649,
+      "pe": 0.2212,
+      "pv": 0.1298,
+      "margem": 0.0273
+    },
+    "2026-07-21|atletico-mg|bahia": {
+      "odd_m": 2.1,
+      "odd_e": 3.3,
+      "odd_v": 3.5,
+      "pm": 0.4472,
+      "pe": 0.2846,
+      "pv": 0.2683,
+      "margem": 0.0649
+    },
+    "2026-07-22|fluminense|rb bragantino": {
+      "odd_m": 1.9,
+      "odd_e": 3.4,
+      "odd_v": 4.0,
+      "pm": 0.4917,
+      "pe": 0.2748,
+      "pv": 0.2336,
+      "margem": 0.0704
+    },
+    "2026-07-22|mirassol|gremio": {
+      "odd_m": 2.05,
+      "odd_e": 3.25,
+      "odd_v": 3.5,
+      "pm": 0.4512,
+      "pe": 0.2846,
+      "pv": 0.2643,
+      "margem": 0.0812
+    },
+    "2026-07-22|botafogo|santos": {
+      "odd_m": 1.9,
+      "odd_e": 3.25,
+      "odd_v": 4.0,
+      "pm": 0.4855,
+      "pe": 0.2838,
+      "pv": 0.2306,
+      "margem": 0.084
+    },
+    "2026-07-22|vitoria|vasco": {
+      "odd_m": 2.4,
+      "odd_e": 3.2,
+      "odd_v": 2.9,
+      "pm": 0.388,
+      "pe": 0.291,
+      "pv": 0.3211,
+      "margem": 0.074
+    },
+    "2026-07-22|sao paulo|athletico-pr": {
+      "odd_m": 1.93,
+      "odd_e": 3.5,
+      "odd_v": 4.2,
+      "pm": 0.4973,
+      "pe": 0.2742,
+      "pv": 0.2285,
+      "margem": 0.0419
+    },
+    "2026-07-22|internacional|cruzeiro": {
+      "odd_m": 2.3,
+      "odd_e": 3.5,
+      "odd_v": 3.15,
+      "pm": 0.4189,
+      "pe": 0.2753,
+      "pv": 0.3059,
+      "margem": 0.038
+    },
+    "2026-07-22|chapecoense|flamengo": {
+      "odd_m": 7.0,
+      "odd_e": 4.6,
+      "odd_v": 1.47,
+      "pm": 0.1373,
+      "pe": 0.2089,
+      "pv": 0.6538,
+      "margem": 0.0405
+    },
+    "2026-07-23|corinthians|remo": {
+      "odd_m": 1.57,
+      "odd_e": 4.0,
+      "odd_v": 6.0,
+      "pm": 0.6045,
+      "pe": 0.2373,
+      "pv": 0.1582,
+      "margem": 0.0536
+    },
+    "2026-07-23|coritiba|palmeiras": {
+      "odd_m": 4.0,
+      "odd_e": 3.3,
+      "odd_v": 1.95,
+      "pm": 0.2346,
+      "pe": 0.2843,
+      "pv": 0.4811,
+      "margem": 0.0659
+    },
+    "2026-06-26|novorizontino|vila nova": {
+      "odd_m": 2.1,
+      "odd_e": 3.4,
+      "odd_v": 4.1,
+      "pm": 0.4695,
+      "pe": 0.29,
+      "pv": 0.2405,
+      "margem": 0.0142
+    },
+    "2026-06-27|operario|america-mg": {
+      "odd_m": 1.9,
+      "odd_e": 3.5,
+      "odd_v": 4.75,
+      "pm": 0.5147,
+      "pe": 0.2794,
+      "pv": 0.2059,
+      "margem": 0.0226
+    },
+    "2026-06-27|criciuma|sao bernardo": {
+      "odd_m": 1.7,
+      "odd_e": 3.9,
+      "odd_v": 6.0,
+      "pm": 0.5817,
+      "pe": 0.2535,
+      "pv": 0.1648,
+      "margem": 0.0113
+    },
+    "2026-06-28|athletic-mg|avai": {
+      "odd_m": 2.04,
+      "odd_e": 3.5,
+      "odd_v": 4.1,
+      "pm": 0.4807,
+      "pe": 0.2802,
+      "pv": 0.2392,
+      "margem": 0.0198
+    },
+    "2026-06-28|atletico-go|ponte preta": {
+      "odd_m": 1.46,
+      "odd_e": 4.75,
+      "odd_v": 8.25,
+      "pm": 0.6737,
+      "pe": 0.2071,
+      "pv": 0.1192,
+      "margem": 0.0167
+    },
+    "2026-06-28|juventude|ceara": {
+      "odd_m": 2.1,
+      "odd_e": 3.15,
+      "odd_v": 3.9,
+      "pm": 0.4535,
+      "pe": 0.3023,
+      "pv": 0.2442,
+      "margem": 0.0501
+    },
+    "2026-06-28|nautico|goias": {
+      "odd_m": 1.92,
+      "odd_e": 3.7,
+      "odd_v": 4.5,
+      "pm": 0.514,
+      "pe": 0.2667,
+      "pv": 0.2193,
+      "margem": 0.0133
+    },
+    "2026-06-28|fortaleza|sport": {
+      "odd_m": 1.93,
+      "odd_e": 3.7,
+      "odd_v": 4.33,
+      "pm": 0.5083,
+      "pe": 0.2651,
+      "pv": 0.2266,
+      "margem": 0.0194
+    },
+    "2026-06-30|botafogo-sp|crb": {
+      "odd_m": 2.45,
+      "odd_e": 3.1,
+      "odd_v": 3.35,
+      "pm": 0.3966,
+      "pe": 0.3134,
+      "pv": 0.29,
+      "margem": 0.0293
+    }
+  }
+}

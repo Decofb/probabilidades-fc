@@ -31,7 +31,8 @@ def _norm(s: str) -> str:
     return unidecode(s or "").lower().strip()
 
 
-def dicas_do_jogo(j, m, perfis: dict | None = None) -> list[dict]:
+def dicas_do_jogo(j, m, perfis: dict | None = None,
+                  mercado_odds=None) -> list[dict]:
     perfis = perfis or {}
     pm = perfis.get(_norm(j.mandante))
     pv = perfis.get(_norm(j.visitante))
@@ -52,22 +53,40 @@ def dicas_do_jogo(j, m, perfis: dict | None = None) -> list[dict]:
                     return f
         return ""
 
-    def emit(mercado, prob, hist, base, reforco=""):
+    def _valor_vs_mkt(prob_modelo: float, prob_mkt: float | None) -> str:
+        """Retorna string de contexto de valor se modelo > mercado por ≥5pp."""
+        if prob_mkt is None:
+            return ""
+        delta = round((prob_modelo - prob_mkt) * 100)
+        if delta >= 5:
+            return f"mercado implica {round(prob_mkt*100)}% → valor potencial de +{delta}pp"
+        return ""
+
+    def emit(mercado_nome, prob, hist, base, reforco="", p_mkt=None):
         partes = [f"modelo {round(prob*100)}%"]
         if hist is not None:
             partes.append(f"{round(hist*100)}% no histórico dos times")
+        valor = _valor_vs_mkt(prob, p_mkt)
+        if valor:
+            partes.append(valor)
         out.append({
-            "mercado": mercado, "p": prob, "confianca": "muito provável",
+            "mercado": mercado_nome, "p": prob, "confianca": "muito provável",
             "motivo": f"{base} — " + " · ".join(partes), "reforco": reforco,
+            "tem_valor": bool(valor),
         })
+
+    # Probabilidades implícitas do mercado (None se não disponível)
+    mkt_pm = getattr(mercado_odds, "pm", None)
+    mkt_pe = getattr(mercado_odds, "pe", None)
+    mkt_pv = getattr(mercado_odds, "pv", None)
 
     # ---- RESULTADO ----
     if m.vitoria_mandante >= P_RESULT and (not tem or pm["vit"] >= VIT_MIN):
         emit(f"Vitória {j.mandante}", m.vitoria_mandante, pm["vit"] if tem else None,
-             "favorito claro e vem ganhando", flagof("Casa-dependente"))
+             "favorito claro e vem ganhando", flagof("Casa-dependente"), p_mkt=mkt_pm)
     elif m.vitoria_visitante >= P_RESULT and (not tem or pv["vit"] >= VIT_MIN):
         emit(f"Vitória {j.visitante}", m.vitoria_visitante, pv["vit"] if tem else None,
-             "favorito mesmo fora de casa")
+             "favorito mesmo fora de casa", p_mkt=mkt_pv)
 
     # ---- GOLS (rígido: histórico é OBRIGATÓRIO e tem que confirmar forte) ----
     ho = hmed("o25")
