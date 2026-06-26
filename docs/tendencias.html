@@ -14,7 +14,7 @@
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }
-  .nav { display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }
   .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
     color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }
   .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
@@ -76,11 +76,11 @@
 </style>
 </head>
 <body>
-  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="on" href="tendencias.html">📊 Tendências</a></nav>
+  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="on" href="tendencias.html">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a></nav>
   <header>
     <h1>📊 Tendências</h1>
     <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
-    <div class="ts">xG · regressão à média · atualizado 26/06/2026 08:00</div>
+    <div class="ts">xG · regressão à média · atualizado 26/06/2026 08:42</div>
     <div class="nota">Como ler: <b>xG</b> mostra a qualidade real das chances. Um time <b>azarado</b>
       (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
       É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
