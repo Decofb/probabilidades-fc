@@ -14,7 +14,7 @@
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }
-  .nav { display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }
   .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
     color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }
   .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
@@ -63,7 +63,7 @@
 </style>
 </head>
 <body>
-  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="on" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a></nav>
+  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="on" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a></nav>
   <header>
     <h1>💡 Dicas</h1>
     <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
@@ -74,10 +74,10 @@
   </header>
   <main>
       <section>
-        <div class="daymark"><span class="day">Amanhã</span>
-          <span class="day-sub">sábado, 27/06</span><span class="rule"></span>
+        <div class="daymark"><span class="day">Domingo</span>
+          <span class="day-sub">28/06</span><span class="rule"></span>
           <span class="day-count">1 jogo</span></div>
-        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">16:00</span></div><div class="match"><span class="team">Criciúma</span><span class="vs">vs</span><span class="team">São Bernardo-SP</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#84cc16"><div class="dica-head"><span class="dica-mkt">Under 2.5 gols</span><span class="dica-pct" style="color:#84cc16">66%</span></div><div class="dica-conf alta">muito provável</div><div class="dica-why">jogo truncado e confirmado pelo histórico — modelo 66% · 68% no histórico dos times · <b>🧱 Under (79%)</b></div></div></div></article></div>
+        <div class="grade"><article class="dcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">16:00</span></div><div class="match"><span class="team">Atlético-GO</span><span class="vs">vs</span><span class="team">Ponte Preta</span></div><div class="dicas-list"><div class="dica" style="border-left-color:#84cc16"><div class="dica-head"><span class="dica-mkt">Vitória Atlético-GO</span><span class="dica-pct" style="color:#84cc16">68%</span></div><div class="dica-conf alta">muito provável</div><div class="dica-why">favorito claro e vem ganhando — modelo 68%</div></div></div></article></div>
       </section></main>
   <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>
 </body>

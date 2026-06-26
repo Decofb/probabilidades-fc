@@ -19,7 +19,7 @@ from motor.poisson import ResultadoMercados  # noqa: E402
 
 def _nav(ativo: str) -> str:
     itens = [("index.html", "⚽ Jogos", "jogos"), ("dicas.html", "💡 Dicas", "dicas"),
-             ("tendencias.html", "📊 Tendências", "tend")]
+             ("tendencias.html", "📊 Tendências", "tend"), ("historico.html", "📅 Histórico", "hist")]
     links = "".join(f'<a class="{"on" if k == ativo else ""}" href="{href}">{txt}</a>'
                     for href, txt, k in itens)
     return f'<nav class="nav">{links}</nav>'
@@ -55,8 +55,7 @@ def _bloco(titulo: str, extra: str, linhas: str) -> str:
     return (f'<div class="bloco"><div class="eyebrow">{titulo}{extra_html}</div>{linhas}</div>')
 
 
-def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
-              liga_cfg: dict | None = None) -> str:
+def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None) -> str:
     nome_m = html.escape(j.mandante)
     nome_v = html.escape(j.visitante)
     pm, pe, pv = m.pct(m.vitoria_mandante), m.pct(m.empate), m.pct(m.vitoria_visitante)
@@ -74,14 +73,7 @@ def card_jogo(j: Jogo, m: ResultadoMercados, ha: dict | None, linha_ha: float,
             _mercado("+2.5 gols", m.pct(m.over_25)) + _mercado("Ambas marcam", m.pct(m.ambas_marcam)))
     blocos = _bloco("Gols", "total da partida", gols)
 
-    # handicap
-    if ha:
-        sinal = "+" if linha_ha >= 0 else ""
-        outra = f"{'-' if linha_ha >= 0 else '+'}{abs(linha_ha)}"
-        hc = (_mercado(f"{nome_m} {sinal}{linha_ha}", round(ha['mandante'] * 100)) +
-              _mercado(f"{nome_v} {outra}", round(ha['visitante'] * 100)))
-        blocos += _bloco("Handicap asiático", "", hc)
-
+    # Handicap asiático foi removido a pedido (pouca utilidade percebida).
     # Escanteios e cartoes NAO sao exibidos: o backtest mostrou que nao superam
     # o baseline. Continuam sendo calculados e logados (registro) para reavaliacao
     # futura, mas ficam fora do site enquanto nao forem calibrados.
@@ -201,7 +193,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .backup {{ max-width:680px; margin:14px auto 0; padding:9px 14px; border-radius:10px; text-align:center;
     font-size:12.5px; color:#ffdada; background:rgba(220,40,40,.12); border:1px solid rgba(220,40,40,.35); }}
 
-  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
     color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
@@ -412,7 +404,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
-  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
     color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
@@ -560,7 +552,7 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
-  .nav {{ display:flex; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
     color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
@@ -623,5 +615,150 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
 </body>
 </html>"""
     destino = PASTA_SITE / "dicas.html"
+    destino.write_text(doc, encoding="utf-8")
+    return destino
+
+
+# ===================== ABA HISTÓRICO =====================
+
+def card_historico(row, liga_cfg=None) -> str:
+    gm, gv = int(float(row["gm"])), int(float(row["gv"]))
+    nm, nv = html.escape(row["mandante"]), html.escape(row["visitante"])
+    cm = "win" if gm > gv else ("draw" if gm == gv else "")
+    cv = "win" if gv > gm else ("draw" if gm == gv else "")
+
+    def f(c):
+        try:
+            return float(row.get(c, "") or 0)
+        except ValueError:
+            return 0.0
+
+    p = [f("p1"), f("px"), f("p2")]
+    idx_pick, idx_real = p.index(max(p)), (0 if gm > gv else (1 if gm == gv else 2))
+    pick_full = [f"Vitória {row['mandante']}", "Empate", f"Vitória {row['visitante']}"][idx_pick]
+    tot = gm + gv
+    over_call = f("po25") >= 0.5
+    btts_call = f("pbtts") >= 0.5
+
+    def chip(ok, txt, pct):
+        ic = "✓" if ok else "✗"
+        return f'<span class="hchip {"ok" if ok else "no"}">{ic} {html.escape(txt)} <i>{pct}%</i></span>'
+
+    chips = (chip(idx_pick == idx_real, pick_full, round(max(p) * 100))
+             + chip(over_call == (tot >= 3), "Over 2.5" if over_call else "Under 2.5",
+                    round((f("po25") if over_call else 1 - f("po25")) * 100))
+             + chip(btts_call == (gm >= 1 and gv >= 1), "Ambas" if btts_call else "Ambas não",
+                    round((f("pbtts") if btts_call else 1 - f("pbtts")) * 100)))
+    selo = f"{liga_cfg.get('emoji', '')} {html.escape(liga_cfg.get('nome', ''))}" if liga_cfg else ""
+    return (f'<article class="hcard">'
+            f'<div class="card-top"><span class="liga-tag">{selo}</span>'
+            f'<span class="hora">{html.escape(row.get("hora", ""))}</span></div>'
+            f'<div class="hplacar"><span class="pteam {cm}">{nm}</span>'
+            f'<span class="pscore">{gm}<i>–</i>{gv}</span>'
+            f'<span class="pteam {cv}">{nv}</span></div>'
+            f'<div class="hchips">{chips}</div></article>')
+
+
+def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
+    nomes = {"HOJE": "Hoje", "ONTEM": "Ontem"}
+    secoes = ""
+    for rotulo, subtitulo, cards in grupos_data:
+        if not cards:
+            continue
+        titulo = nomes.get(rotulo, rotulo)
+        secoes += f"""
+      <section>
+        <div class="daymark"><span class="day">{titulo}</span>
+          <span class="day-sub">{subtitulo}</span><span class="rule"></span>
+          <span class="day-count">{len(cards)} jogo{'s' if len(cards) != 1 else ''}</span></div>
+        <div class="grade">{''.join(cards)}</div>
+      </section>"""
+    if not secoes:
+        secoes = ('<p class="vazio">Ainda sem jogos conferidos. Assim que as partidas mostradas '
+                  'terminarem, os resultados aparecem aqui — automaticamente.</p>')
+
+    resumo_html = ""
+    if resumo and resumo.get("n"):
+        resumo_html = (f'<div class="resumo">Em <b>{resumo["n"]}</b> jogos conferidos, o modelo acertou: '
+                       f'<b>resultado</b> {resumo["res"]:.0%} · <b>over/under</b> {resumo["over"]:.0%} · '
+                       f'<b>ambas marcam</b> {resumo["btts"]:.0%}</div>')
+
+    doc = f"""<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Histórico · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --red:#ef6a6a; --r:14px; }}
+  * {{ box-sizing:border-box; }}
+  body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
+  .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
+  .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+  .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
+  .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  header {{ text-align:center; padding:28px 18px 6px; }}
+  header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
+  header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
+  header .ts {{ margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }}
+  .resumo {{ max-width:760px; margin:16px auto 0; padding:12px 16px; text-align:center; font-size:12.5px;
+    color:var(--mut); border:1px solid var(--line); border-radius:12px; background:var(--panel2); }}
+  .resumo b {{ color:var(--em); }}
+  main {{ max-width:1000px; margin:0 auto; padding:8px 16px 80px; }}
+  .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
+    padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }}
+  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; color:var(--bone); }}
+  .day-sub {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }}
+  .rule {{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }}
+  .day-count {{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }}
+  .grade {{ display:grid; grid-template-columns:1fr; gap:14px; }}
+  @media(min-width:760px) {{ .grade {{ grid-template-columns:1fr 1fr; }} }}
+  .hcard {{ background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:var(--r); padding:15px; box-shadow:0 18px 40px -22px rgba(0,0,0,.8); }}
+  .card-top {{ display:flex; justify-content:space-between; align-items:center; margin-bottom:11px; }}
+  .liga-tag {{ font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mut); }}
+  .hora {{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }}
+  .hplacar {{ display:flex; align-items:center; gap:10px; margin-bottom:13px; }}
+  .pteam {{ flex:1; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; color:var(--mut); }}
+  .pteam:last-child {{ text-align:right; }}
+  .pteam.win {{ color:var(--em); }}
+  .pteam.draw {{ color:var(--bone); }}
+  .pscore {{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:22px; color:var(--bone);
+    font-variant-numeric:tabular-nums; }}
+  .pscore i {{ color:var(--faint); font-style:normal; margin:0 3px; }}
+  .hchips {{ display:flex; flex-wrap:wrap; gap:6px; }}
+  .hchip {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px;
+    border:1px solid var(--line); color:var(--mut); }}
+  .hchip i {{ font-style:normal; color:var(--faint); }}
+  .hchip.ok {{ color:var(--em); border-color:rgba(52,226,160,.35); background:rgba(52,226,160,.07); }}
+  .hchip.no {{ color:var(--red); border-color:rgba(239,106,106,.3); }}
+  .hchip.ok i {{ color:#9fd8c2; }}
+  .vazio {{ text-align:center; color:var(--mut); margin-top:60px; line-height:1.6; max-width:520px; margin-left:auto; margin-right:auto; }}
+  footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
+  footer b {{ color:var(--em); }}
+</style>
+</head>
+<body>
+  {_nav("hist")}
+  <header>
+    <h1>📅 Histórico</h1>
+    <div class="sub">Resultado das partidas que apareceram — e se o modelo acertou</div>
+    <div class="ts">✓ acertou · ✗ errou · atualizado {data_geracao}</div>
+    {resumo_html}
+  </header>
+  <main>{secoes}</main>
+  <footer><b>Probabilidades FC</b> · histórico real · sem odds</footer>
+</body>
+</html>"""
+    destino = PASTA_SITE / "historico.html"
     destino.write_text(doc, encoding="utf-8")
     return destino

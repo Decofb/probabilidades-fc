@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#090d13">
+<title>Histórico · Probabilidades FC</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
+  :root { --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --red:#ef6a6a; --r:14px; }
+  * { box-sizing:border-box; }
+  body { margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
+    background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
+    background-attachment:fixed; -webkit-font-smoothing:antialiased; }
+  .nav { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }
+  .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
+    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }
+  .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
+  .nav a:hover { border-color:var(--em); color:var(--bone); }
+  header { text-align:center; padding:28px 18px 6px; }
+  header h1 { margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }
+  header .sub { margin-top:8px; font-size:13px; color:var(--mut); }
+  header .ts { margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint);
+    letter-spacing:1.4px; text-transform:uppercase; }
+  .resumo { max-width:760px; margin:16px auto 0; padding:12px 16px; text-align:center; font-size:12.5px;
+    color:var(--mut); border:1px solid var(--line); border-radius:12px; background:var(--panel2); }
+  .resumo b { color:var(--em); }
+  main { max-width:1000px; margin:0 auto; padding:8px 16px 80px; }
+  .daymark { display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
+    padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }
+  .day { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; color:var(--bone); }
+  .day-sub { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }
+  .rule { flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
+  .day-count { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }
+  .grade { display:grid; grid-template-columns:1fr; gap:14px; }
+  @media(min-width:760px) { .grade { grid-template-columns:1fr 1fr; } }
+  .hcard { background:linear-gradient(180deg,var(--panel),var(--panel2)); border:1px solid var(--line);
+    border-radius:var(--r); padding:15px; box-shadow:0 18px 40px -22px rgba(0,0,0,.8); }
+  .card-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:11px; }
+  .liga-tag { font-family:'IBM Plex Mono',monospace; font-size:10px; letter-spacing:1.2px; text-transform:uppercase; color:var(--mut); }
+  .hora { font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }
+  .hplacar { display:flex; align-items:center; gap:10px; margin-bottom:13px; }
+  .pteam { flex:1; font-family:'Space Grotesk',sans-serif; font-weight:600; font-size:15.5px; color:var(--mut); }
+  .pteam:last-child { text-align:right; }
+  .pteam.win { color:var(--em); }
+  .pteam.draw { color:var(--bone); }
+  .pscore { font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:22px; color:var(--bone);
+    font-variant-numeric:tabular-nums; }
+  .pscore i { color:var(--faint); font-style:normal; margin:0 3px; }
+  .hchips { display:flex; flex-wrap:wrap; gap:6px; }
+  .hchip { font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px;
+    border:1px solid var(--line); color:var(--mut); }
+  .hchip i { font-style:normal; color:var(--faint); }
+  .hchip.ok { color:var(--em); border-color:rgba(52,226,160,.35); background:rgba(52,226,160,.07); }
+  .hchip.no { color:var(--red); border-color:rgba(239,106,106,.3); }
+  .hchip.ok i { color:#9fd8c2; }
+  .vazio { text-align:center; color:var(--mut); margin-top:60px; line-height:1.6; max-width:520px; margin-left:auto; margin-right:auto; }
+  footer { text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
+    font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }
+  footer b { color:var(--em); }
+</style>
+</head>
+<body>
+  <nav class="nav"><a class="" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a><a class="on" href="historico.html">📅 Histórico</a></nav>
+  <header>
+    <h1>📅 Histórico</h1>
+    <div class="sub">Resultado das partidas que apareceram — e se o modelo acertou</div>
+    <div class="ts">✓ acertou · ✗ errou · atualizado 26/06/2026 08:00</div>
+    <div class="resumo">Em <b>5</b> jogos conferidos, o modelo acertou: <b>resultado</b> 20% · <b>over/under</b> 40% · <b>ambas marcam</b> 60%</div>
+  </header>
+  <main>
+      <section>
+        <div class="daymark"><span class="day">Ontem</span>
+          <span class="day-sub">quinta, 25/06</span><span class="rule"></span>
+          <span class="day-count">5 jogos</span></div>
+        <div class="grade"><article class="hcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">23:00</span></div><div class="hplacar"><span class="pteam draw">Paraguai</span><span class="pscore">0<i>–</i>0</span><span class="pteam draw">Austrália</span></div><div class="hchips"><span class="hchip no">✗ Vitória Paraguai <i>38%</i></span><span class="hchip ok">✓ Under 2.5 <i>57%</i></span><span class="hchip ok">✓ Ambas não <i>50%</i></span></div></article><article class="hcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">23:00</span></div><div class="hplacar"><span class="pteam win">Turquia</span><span class="pscore">3<i>–</i>2</span><span class="pteam ">EUA</span></div><div class="hchips"><span class="hchip no">✗ Vitória EUA <i>36%</i></span><span class="hchip no">✗ Under 2.5 <i>57%</i></span><span class="hchip no">✗ Ambas não <i>50%</i></span></div></article><article class="hcard"><div class="card-top"><span class="liga-tag">🥈 Brasileirão Série B</span><span class="hora">20:30</span></div><div class="hplacar"><span class="pteam draw">Cuiabá</span><span class="pscore">2<i>–</i>2</span><span class="pteam draw">Londrina</span></div><div class="hchips"><span class="hchip no">✗ Vitória Cuiabá <i>40%</i></span><span class="hchip no">✗ Under 2.5 <i>65%</i></span><span class="hchip no">✗ Ambas não <i>58%</i></span></div></article><article class="hcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">20:00</span></div><div class="hplacar"><span class="pteam draw">Japão</span><span class="pscore">1<i>–</i>1</span><span class="pteam draw">Suécia</span></div><div class="hchips"><span class="hchip no">✗ Vitória Japão <i>59%</i></span><span class="hchip no">✗ Over 2.5 <i>61%</i></span><span class="hchip ok">✓ Ambas <i>58%</i></span></div></article><article class="hcard"><div class="card-top"><span class="liga-tag">🌍 Copa do Mundo 2026</span><span class="hora">20:00</span></div><div class="hplacar"><span class="pteam ">Tunísia</span><span class="pscore">1<i>–</i>3</span><span class="pteam win">Holanda</span></div><div class="hchips"><span class="hchip ok">✓ Vitória Holanda <i>54%</i></span><span class="hchip ok">✓ Over 2.5 <i>57%</i></span><span class="hchip ok">✓ Ambas <i>58%</i></span></div></article></div>
+      </section></main>
+  <footer><b>Probabilidades FC</b> · histórico real · sem odds</footer>
+</body>
+</html>

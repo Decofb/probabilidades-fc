@@ -70,9 +70,17 @@ def registrar(novas: list[dict]) -> int:
 
 
 def pendentes(hoje_str: str) -> list[dict]:
-    """Previsoes ainda nao conferidas cujo jogo ja passou (data < hoje)."""
+    """Previsoes nao conferidas cujo jogo e de hoje ou ja passou (data <= hoje).
+    Inclui hoje p/ conciliar jogos que ja terminaram no mesmo dia."""
     return [r for r in carregar()
-            if r.get("status") == "previsto" and r.get("data", "") < hoje_str]
+            if r.get("status") == "previsto" and r.get("data", "") <= hoje_str]
+
+
+def conferidos() -> list[dict]:
+    """Jogos ja conciliados com resultado real, mais recentes primeiro."""
+    rows = [r for r in carregar() if r.get("status") == "conferido"
+            and r.get("gm", "") != "" and r.get("gv", "") != ""]
+    return sorted(rows, key=lambda r: (r.get("data", ""), r.get("hora", "")), reverse=True)
 
 
 def expirar(hoje_str: str, dias: int = 10) -> int:

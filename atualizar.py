@@ -31,7 +31,8 @@ from dados.registro import registrar, id_jogo
 from motor.forca import (EstatisticasTime,
                          gols_esperados, escanteios_esperados, cartoes_esperados)
 from motor.poisson import calcular_mercados, handicap_asiatico
-from site_gerador import card_jogo, gerar_site, gerar_tendencias, card_dica, gerar_dicas_html
+from site_gerador import (card_jogo, gerar_site, gerar_tendencias, card_dica,
+                          gerar_dicas_html, card_historico, gerar_historico_html)
 
 FUSO_BR = timezone(timedelta(hours=-3))
 DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
@@ -115,6 +116,18 @@ def rotulo_data(data_str: str, hoje):
     return sub.split(",")[0].capitalize(), d.strftime("%d/%m")
 
 
+def rotulo_passado(data_str: str, hoje):
+    """Rótulo para datas no passado: HOJE / ONTEM / dia da semana."""
+    d = datetime.strptime(data_str, "%Y-%m-%d").date()
+    delta = (hoje - d).days
+    sub = f"{DIAS_SEMANA[d.weekday()]}, {d.strftime('%d/%m')}"
+    if delta == 0:
+        return "HOJE", sub
+    if delta == 1:
+        return "ONTEM", sub
+    return sub.split(",")[0].capitalize(), d.strftime("%d/%m")
+
+
 # tempo de jogo: depois disso consideramos a partida encerrada e tiramos do site
 DURACAO_JOGO_H = 2.5
 
@@ -187,11 +200,7 @@ def main(offline: bool = False) -> int:
                 disp_escanteios=liga_params.disp_escanteios,
                 disp_cartoes=liga_params.disp_cartoes)
 
-            margem = arredondar_meio(lam_m - lam_v)
-            linha_ha = -margem if margem != 0 else -0.5
-            ha = handicap_asiatico(lam_m, lam_v, linha=linha_ha)
-
-            card = card_jogo(j, mercados, ha, linha_ha, LIGAS[liga_key])
+            card = card_jogo(j, mercados, LIGAS[liga_key])
             por_data.setdefault(j.data, []).append((j.hora, card))
             dicas_jogos.append((j, mercados, LIGAS[liga_key], liga_key))
 
@@ -287,6 +296,46 @@ def main(offline: bool = False) -> int:
         print(f"[aba Dicas gerada: {sum(len(c) for _, _, c in grupos_dicas)} jogos com dica]")
     except Exception as e:
         print(f"[Dicas falhou: {type(e).__name__}: {e}]")
+
+    # aba Histórico (resultado das partidas já mostradas, conciliadas com o real)
+    try:
+        from collections import defaultdict
+        from dados.registro import conferidos
+        conf = conferidos()
+        # resumo de acerto do modelo
+        resumo = None
+        if conf:
+            res = ov = bt = 0
+
+            def fl(r, c):
+                try:
+                    return float(r.get(c, "") or 0)
+                except ValueError:
+                    return 0.0
+            for r in conf:
+                gm, gv = fl(r, "gm"), fl(r, "gv")
+                tot = gm + gv
+                pp = [fl(r, "p1"), fl(r, "px"), fl(r, "p2")]
+                if pp.index(max(pp)) == (0 if gm > gv else (1 if gm == gv else 2)):
+                    res += 1
+                if (fl(r, "po25") >= 0.5) == (tot >= 3):
+                    ov += 1
+                if (fl(r, "pbtts") >= 0.5) == (gm >= 1 and gv >= 1):
+                    bt += 1
+            n = len(conf)
+            resumo = {"n": n, "res": res / n, "over": ov / n, "btts": bt / n}
+
+        ph = defaultdict(list)
+        for r in conf:
+            ph[r["data"]].append(card_historico(r, LIGAS.get(r["liga"])))
+        grupos_h = []
+        for data_str in sorted(ph, reverse=True):  # mais recente primeiro
+            rot, sub = rotulo_passado(data_str, hoje)
+            grupos_h.append((rot, sub, ph[data_str]))
+        gerar_historico_html(grupos_h, ultima_coleta, resumo)
+        print(f"[aba Histórico gerada: {len(conf)} jogos conferidos]")
+    except Exception as e:
+        print(f"[Histórico falhou: {type(e).__name__}: {e}]")
 
     if total == 0:
         print("!! NENHUM jogo calculado - coleta falhou ou sem jogos. (exit 2)")
