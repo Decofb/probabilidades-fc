@@ -22,9 +22,13 @@ from datetime import datetime, timedelta, timezone
 
 from unidecode import unidecode
 
+from dataclasses import replace as _dc_replace
+
 from config import LIGAS, PASTA_SITE, parametros_da_liga, janela_liga
 from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
-                             coletar_jogos_futuros)
+                             coletar_jogos_futuros, medias_liga)
+from dados.desfalques import coletar_desfalques, desfalques_do_jogo
+from dados.fifa_elo import aplicar_elo_copa
 from dados.fonte import salvar_times_csv, carregar_times_csv
 from dados.jogos import salvar_jogos_csv, carregar_jogos_csv
 from dados.registro import registrar, id_jogo
@@ -35,7 +39,6 @@ from site_gerador import (card_jogo, gerar_site, gerar_tendencias, card_dica,
                           gerar_dicas_html, card_historico, gerar_historico_html)
 
 FUSO_BR = timezone(timedelta(hours=-3))
-DIAS_HISTORICO = 45   # quantos dias pra tras pra montar a forma dos times
 DIAS_FRENTE = 3       # foco em hoje e amanha (+1 de folga)
 
 
@@ -73,6 +76,26 @@ def arredondar_meio(x: float) -> float:
     return round(x * 2) / 2
 
 
+def _cross_validar_flash(liga_key: str, times_365: dict) -> None:
+    """Compara médias de gols 365scores vs Flashscore; loga divergências > 0.3 gols/jogo."""
+    try:
+        from dados.flashscore import coletar_estatisticas as flash_stats, comparar_com_365
+        flash = flash_stats(liga_key)
+        if not flash:
+            return
+        divs = comparar_com_365(flash, times_365, limiar_delta=0.3)
+        if divs:
+            print(f"  [Flash⚡365] {len(divs)} divergências de gols/jogo:")
+            for d in divs[:4]:
+                print(f"    {d['time_flash']}: GF {d['flash_gf']} vs {d['s365_gf']}  "
+                      f"GS {d['flash_gs']} vs {d['s365_gs']}  "
+                      f"(Δ {d['delta_gf']+d['delta_gs']:.2f})")
+        else:
+            print(f"  [Flash⚡365] gols convergentes nos {len(flash)} times")
+    except Exception as e:
+        print(f"  [Flash⚡365 falhou: {type(e).__name__}]")
+
+
 def obter_dados(liga_key: str, offline: bool, hoje):
     """
     Devolve (times, jogos, online_ok). 'hoje' e um date em BRT (mesma referencia
@@ -80,7 +103,8 @@ def obter_dados(liga_key: str, offline: bool, hoje):
     """
     comp = COMPETICOES_365.get(liga_key)
     if not offline and comp:
-        d1 = (hoje - timedelta(days=DIAS_HISTORICO)).strftime("%d/%m/%Y")
+        # Janela cobre a temporada inteira a partir do INICIO_TEMPORADA
+        d1, _ = janela_liga(liga_key, hoje_date=hoje)
         d2 = hoje.strftime("%d/%m/%Y")
         d_frente = (hoje + timedelta(days=DIAS_FRENTE)).strftime("%d/%m/%Y")
         try:
@@ -91,9 +115,21 @@ def obter_dados(liga_key: str, offline: bool, hoje):
             if jogos:
                 salvar_jogos_csv(liga_key, jogos)
             print(f"  [365scores OK] {len(times)} times · {len(jogos)} jogos futuros")
+            _cross_validar_flash(liga_key, times)
             return times, jogos, True
         except Exception as e:
-            print(f"  [365scores falhou: {type(e).__name__}] usando CSV salvo")
+            print(f"  [365scores falhou: {type(e).__name__}] tentando Flashscore...")
+            # Fallback: Flashscore fornece gols (sem xG/escanteios)
+            try:
+                from dados.flashscore import (coletar_estatisticas as flash_stats,
+                                              coletar_jogos_futuros as flash_jogos)
+                times = flash_stats(liga_key)
+                jogos = flash_jogos(liga_key, liga_key)
+                if times:
+                    print(f"  [Flashscore fallback] {len(times)} times · {len(jogos)} jogos")
+                    return times, jogos, False
+            except Exception as e2:
+                print(f"  [Flashscore fallback falhou: {type(e2).__name__}] usando CSV")
 
     times = carregar_times_csv(liga_key)
     jogos = carregar_jogos_csv(liga_key)
@@ -192,6 +228,38 @@ def main(offline: bool = False) -> int:
         times, jogos, online_ok = obter_dados(liga_key, offline, hoje)
         alguma_online = alguma_online or online_ok
 
+        # Recalcular médias de gols da liga com dados reais da temporada
+        if online_ok and COMPETICOES_365.get(liga_key):
+            try:
+                d1_liga, _ = janela_liga(liga_key, hoje_date=hoje)
+                d2_liga = hoje.strftime("%d/%m/%Y")
+                gm, gv = medias_liga(COMPETICOES_365[liga_key], d1_liga, d2_liga)
+                if gm and gv:
+                    liga_params = _dc_replace(liga_params,
+                                              media_gols_mandante=gm,
+                                              media_gols_visitante=gv)
+                    print(f"  [médias reais] mandante={gm:.2f}  visitante={gv:.2f}  "
+                          f"(hardcoded era {parametros_da_liga(liga_key).media_gols_mandante:.2f}"
+                          f"/{parametros_da_liga(liga_key).media_gols_visitante:.2f})")
+            except Exception as e:
+                print(f"  [médias reais falhou: {type(e).__name__}]")
+
+        # Copa do Mundo: ajusta prior bayesiano com ranking FIFA para cada seleção
+        if liga_key == "copa_mundo" and times:
+            try:
+                times = aplicar_elo_copa(times)
+                print(f"  [ELO FIFA] prior ajustado para {len(times)} seleções")
+            except Exception as e:
+                print(f"  [ELO FIFA falhou: {type(e).__name__}]")
+
+        # Coleta desfalques (suspensos/lesionados) — só Brasileirão, falha silenciosamente
+        desfal_liga: dict = {}
+        if not offline and liga_key in ("brasileirao_a", "brasileirao_b"):
+            try:
+                desfal_liga = coletar_desfalques(liga_key)
+            except Exception as e:
+                print(f"  [desfalques falhou: {type(e).__name__}]")
+
         calc = 0
         for j in jogos:
             if not jogo_relevante(j, agora_dt):  # ignora passados/encerrados
@@ -220,7 +288,8 @@ def main(offline: bool = False) -> int:
                 except Exception:
                     pass
 
-            card = card_jogo(j, mercados, LIGAS[liga_key], mercado=mkt_jogo)
+            desfal_jogo = desfalques_do_jogo(j.mandante, j.visitante, desfal_liga) if desfal_liga else None
+            card = card_jogo(j, mercados, LIGAS[liga_key], mercado=mkt_jogo, desfalques=desfal_jogo)
             por_data.setdefault(j.data, []).append((j.hora, card))
             dicas_jogos.append((j, mercados, LIGAS[liga_key], liga_key, mkt_jogo))
 

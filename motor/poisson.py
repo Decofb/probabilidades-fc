@@ -49,9 +49,13 @@ class ResultadoMercados:
     gols_esperados_mandante: float
     gols_esperados_visitante: float
 
-    # Placar mais provavel
+    # Placar mais provavel (argmax global — raramente usado diretamente)
     placar_provavel: tuple[int, int]
     prob_placar_provavel: float
+
+    # Palpite fundamentado: placar mais provável DENTRO do resultado mais provável (1/X/2)
+    palpite: tuple[int, int] = field(default_factory=lambda: (1, 1))
+    prob_palpite: float = 0.0
 
     # Escanteios (preenchido so se houver dados) - over X.5
     escanteios: dict[str, float] = field(default_factory=dict)
@@ -152,6 +156,11 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
     melhor_placar = (0, 0)
     melhor_prob = 0.0
 
+    # Para o palpite: melhor placar dentro de cada resultado
+    melhor_h: tuple[int, int] = (1, 0); prob_h = 0.0  # mandante vence
+    melhor_x: tuple[int, int] = (1, 1); prob_x = 0.0  # empate
+    melhor_a: tuple[int, int] = (0, 1); prob_a = 0.0  # visitante vence
+
     for i in range(max_gols + 1):
         for j in range(max_gols + 1):
             p = matriz[i][j]
@@ -159,10 +168,16 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
             # 1X2
             if i > j:
                 vit_mandante += p
+                if p > prob_h:
+                    prob_h = p; melhor_h = (i, j)
             elif i == j:
                 empate += p
+                if p > prob_x:
+                    prob_x = p; melhor_x = (i, j)
             else:
                 vit_visitante += p
+                if p > prob_a:
+                    prob_a = p; melhor_a = (i, j)
 
             # Over/Under (total de gols)
             total = i + j
@@ -179,10 +194,18 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
             if i >= 1 and j >= 1:
                 ambas += p
 
-            # Placar mais provavel
+            # Placar mais provavel (argmax global)
             if p > melhor_prob:
                 melhor_prob = p
                 melhor_placar = (i, j)
+
+    # Palpite: placar mais provável dentro do resultado mais provável
+    if vit_mandante >= empate and vit_mandante >= vit_visitante:
+        palpite, prob_palpite = melhor_h, prob_h
+    elif empate >= vit_mandante and empate >= vit_visitante:
+        palpite, prob_palpite = melhor_x, prob_x
+    else:
+        palpite, prob_palpite = melhor_a, prob_a
 
     escanteios = {}
     esc_esperados = 0.0
@@ -209,6 +232,8 @@ def calcular_mercados(lam_mandante: float, lam_visitante: float,
         gols_esperados_visitante=lam_visitante,
         placar_provavel=melhor_placar,
         prob_placar_provavel=melhor_prob,
+        palpite=palpite,
+        prob_palpite=prob_palpite,
         escanteios=escanteios,
         escanteios_esperados=esc_esperados,
         cartoes=cartoes,

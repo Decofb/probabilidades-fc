@@ -33,6 +33,9 @@ class EstatisticasTime:
     escanteios_feitos_por_jogo: float | None = None
     escanteios_sofridos_por_jogo: float | None = None
     cartoes_por_jogo: float | None = None   # cartoes (amarelo+vermelho) recebidos por jogo
+    # Força relativa via ranking FIFA/ELO (1.0 = time médio da competição).
+    # Usado como prior bayesiano para Copa do Mundo (amostra pequena + adversários incomparáveis).
+    forca_elo: float = 1.0
 
     def ataque_efetivo(self, peso_xg: float = 0.6) -> float:
         """Combina gols reais e xG (peso_xg = quanto o xG pesa, por ser mais estavel)."""
@@ -95,12 +98,17 @@ def gols_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
     media_total = (media_mand + media_vis) / 2
     k = liga.peso_prior
 
-    # shrinkage: ataque/defesa de cada time regridem para a media da liga
+    # shrinkage: ataque/defesa de cada time regridem para o prior da liga.
+    # forca_elo ajusta o prior individualmente: times fortes (ELO > 1) têm prior
+    # de ataque maior e prior de defesa menor — captura qualidade real quando há
+    # poucos jogos (Copa do Mundo, início de temporada). No Brasileirão forca_elo=1.0
+    # para todos, então o comportamento é idêntico ao original.
     w = liga.peso_xg
-    atk_m = _encolher(mandante.ataque_efetivo(w), mandante.jogos, media_total, k)
-    def_m = _encolher(mandante.defesa_efetiva(w), mandante.jogos, media_total, k)
-    atk_v = _encolher(visitante.ataque_efetivo(w), visitante.jogos, media_total, k)
-    def_v = _encolher(visitante.defesa_efetiva(w), visitante.jogos, media_total, k)
+    elo_m, elo_v = mandante.forca_elo, visitante.forca_elo
+    atk_m = _encolher(mandante.ataque_efetivo(w), mandante.jogos, media_total * elo_m, k)
+    def_m = _encolher(mandante.defesa_efetiva(w), mandante.jogos, media_total / elo_m, k)
+    atk_v = _encolher(visitante.ataque_efetivo(w), visitante.jogos, media_total * elo_v, k)
+    def_v = _encolher(visitante.defesa_efetiva(w), visitante.jogos, media_total / elo_v, k)
 
     ataque_m, defesa_m = atk_m / media_total, def_m / media_total
     ataque_v, defesa_v = atk_v / media_total, def_v / media_total

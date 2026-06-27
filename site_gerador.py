@@ -82,8 +82,40 @@ def _delta_tag(p_modelo: float, p_mkt: float, nome: str) -> str:
     return ""
 
 
+def _desfalques_html(desfalques: dict | None, nome_m: str, nome_v: str) -> str:
+    """Bloco de ausências (suspensos + lesionados) para o card."""
+    if not desfalques or not desfalques.get("tem_desfalque"):
+        return ""
+    linhas = []
+    for lado, nome in (("mandante", nome_m), ("visitante", nome_v)):
+        d = desfalques.get(lado, {})
+        sus = d.get("suspensos", [])
+        les = d.get("lesionados", [])
+        if not sus and not les:
+            continue
+        partes = []
+        if sus:
+            partes.append(f'<span class="desf-tipo susp">Susp:</span> {html.escape(", ".join(sus))}')
+        if les:
+            partes.append(f'<span class="desf-tipo les">Les:</span> {html.escape(", ".join(les))}')
+        linhas.append(
+            f'<div class="desf-row">'
+            f'<span class="desf-t">{nome}</span>'
+            f'<span class="desf-nomes">{" · ".join(partes)}</span>'
+            f'</div>'
+        )
+    if not linhas:
+        return ""
+    return (
+        '<div class="desf-bloco">'
+        '<span class="desf-hdr">⚠ Ausências</span>'
+        + "".join(linhas) +
+        '</div>'
+    )
+
+
 def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
-              mercado=None) -> str:
+              mercado=None, desfalques: dict | None = None) -> str:
     nome_m = html.escape(j.mandante)
     nome_v = html.escape(j.visitante)
     pm, pe, pv = m.pct(m.vitoria_mandante), m.pct(m.empate), m.pct(m.vitoria_visitante)
@@ -139,9 +171,10 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
       {blocos}
       {mkt_html}
       {delta_html}
+      {_desfalques_html(desfalques, nome_m, nome_v)}
 
       <div class="readout">
-        <span>Placar provável <b>{m.placar_provavel[0]}–{m.placar_provavel[1]}</b> · {m.pct(m.prob_placar_provavel)}%</span>
+        <span>Palpite <b>{m.palpite[0]}–{m.palpite[1]}</b> · {m.pct(m.prob_palpite)}%</span>
         <span>xG <b>{m.gols_esperados_mandante:.1f}</b> · <b>{m.gols_esperados_visitante:.1f}</b></span>
       </div>
     </article>"""
@@ -307,6 +340,17 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .delta-val {{ display:block; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px;
     letter-spacing:.5px; color:#34e2a0; padding:3px 10px; border-radius:6px;
     background:rgba(52,226,160,.09); border:1px solid rgba(52,226,160,.2); }}
+
+  .desf-bloco {{ margin-top:10px; padding:8px 10px; border-radius:8px;
+    background:rgba(241,178,74,.06); border:1px solid rgba(241,178,74,.18); }}
+  .desf-hdr {{ display:block; font-size:9px; font-weight:700; letter-spacing:.8px;
+    color:#f1b24a; text-transform:uppercase; margin-bottom:6px; }}
+  .desf-row {{ display:flex; gap:6px; flex-wrap:wrap; font-size:10.5px; margin-bottom:2px; }}
+  .desf-t {{ font-weight:700; color:#c2cdda; min-width:90px; flex-shrink:0; }}
+  .desf-nomes {{ color:var(--mut); font-family:'IBM Plex Mono',monospace; font-size:10px; }}
+  .desf-tipo {{ font-weight:700; }}
+  .desf-tipo.susp {{ color:#f1b24a; }}
+  .desf-tipo.les {{ color:#e85d5d; }}
 
   .readout {{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px;
     border-top:1px solid var(--line2); font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); letter-spacing:.3px; }}

@@ -211,6 +211,25 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
     return times
 
 
+def medias_liga(comp_id: int, d1: str, d2: str) -> tuple[float | None, float | None]:
+    """
+    Média REAL de gols mandante e visitante da competição no período.
+    Usa só listar_jogos (rápido, sem chamadas de stats por partida).
+    Retorna (None, None) se não houver jogos finalizados.
+    """
+    vistos: dict[int, dict] = {}
+    for ja, jb in _janelas(d1, d2):
+        for g in listar_jogos(comp_id, ja, jb):
+            if _finalizado(g):
+                vistos[g["id"]] = g
+    jogos = list(vistos.values())
+    if not jogos:
+        return None, None
+    gm = sum(float(g["homeCompetitor"]["score"]) for g in jogos) / len(jogos)
+    gv = sum(float(g["awayCompetitor"]["score"]) for g in jogos) / len(jogos)
+    return round(gm, 3), round(gv, 3)
+
+
 def coletar_jogos_futuros(comp_id: int, liga_key: str, d1: str, d2: str) -> list[Jogo]:
     """Proximos jogos (ainda nao finalizados) da competicao no periodo."""
     from datetime import datetime
