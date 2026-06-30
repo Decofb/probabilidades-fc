@@ -20,9 +20,12 @@ from motor.poisson import ResultadoMercados  # noqa: E402
 def _nav(ativo: str) -> str:
     itens = [("index.html", "⚽ Jogos", "jogos"), ("dicas.html", "💡 Dicas", "dicas"),
              ("tendencias.html", "📊 Tendências", "tend"), ("historico.html", "📅 Histórico", "hist")]
-    links = "".join(f'<a class="{"on" if k == ativo else ""}" href="{href}">{txt}</a>'
-                    for href, txt, k in itens)
-    return f'<nav class="nav">{links}</nav>'
+    links = "".join(
+        f'<a class="{"on" if k == ativo else ""}" href="{href}"'
+        + (f' aria-current="page"' if k == ativo else '')
+        + f'>{txt}</a>'
+        for href, txt, k in itens)
+    return f'<nav class="nav" aria-label="Navegação principal">{links}</nav>'
 
 
 def _tom(pct: int) -> str:
@@ -47,7 +50,7 @@ def _mercado(label: str, pct: int) -> str:
     """Uma linha de mercado: rotulo · barra (intensidade) · valor em mono."""
     return (f'<div class="m"><span class="m-lbl">{label}</span>'
             f'<span class="m-track"><span class="fill" style="--w:{pct}%;background:{_tom(pct)}"></span></span>'
-            f'<span class="m-val">{pct}<i>%</i></span></div>')
+            f'<span class="m-val">{pct}<span class="pct">%</span></span></div>')
 
 
 def _bloco(titulo: str, extra: str, linhas: str) -> str:
@@ -67,11 +70,11 @@ def _mercado_row(mkt) -> str:
     return (f'<div class="mkt-row">'
             f'<span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span>'
             f'<span class="mkt-vals">'
-            f'<span class="mkt-m">{pm}<i>%</i></span>'
+            f'<span class="mkt-m">{pm}<span class="pct">%</span></span>'
             f'<span class="mkt-sep">·</span>'
-            f'<span class="mkt-e">{pe}<i>%</i></span>'
+            f'<span class="mkt-e">{pe}<span class="pct">%</span></span>'
             f'<span class="mkt-sep">·</span>'
-            f'<span class="mkt-v">{pv}<i>%</i></span>'
+            f'<span class="mkt-v">{pv}<span class="pct">%</span></span>'
             f'</span>'
             f'<span class="mkt-mg">{mg}% mg</span>'
             f'</div>')
@@ -147,7 +150,7 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
     delta_html += '</div>'
 
     return f"""
-    <article class="card">
+    <article class="card" aria-label="{nome_m} vs {nome_v}">
       <div class="card-top">
         <span class="liga-tag">{selo}</span>
         <span class="hora">{hora}</span>
@@ -162,9 +165,9 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
         <span class="seg seg-v" style="--w:{pv}%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">{pm}<i>%</i></span><span class="leg-n">{nome_m}</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">{pe}<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">{pv}<i>%</i></span><span class="leg-n">{nome_v}</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">{pm}<span class="pct">%</span></span><span class="leg-n">{nome_m}</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">{pe}<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">{pv}<span class="pct">%</span></span><span class="leg-n">{nome_v}</span></div>
       </div>
 
       <div class="leitura">
@@ -204,9 +207,9 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
         cls = "daymark hoje" if rotulo == "HOJE" else "daymark"
         n = len(cards)
         secoes += f"""
-      <section>
+      <section aria-label="Jogos de {titulo}">
         <div class="{cls}">
-          <span class="day">{titulo}</span>
+          <h2 class="day">{titulo}</h2>
           <span class="day-sub">{subtitulo}</span>
           <span class="rule"></span>
           <span class="day-count">{n} jogo{'s' if n != 1 else ''}</span>
@@ -224,7 +227,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 
     backup = ""
     if dados_backup:
-        backup = ('<div class="backup">Dados de backup — a coleta de hoje não rodou; '
+        backup = ('<div class="backup" role="alert" aria-live="polite">Dados de backup — a coleta de hoje não rodou; '
                   'mostrando a última atualização bem-sucedida.</div>')
 
     html_doc = f"""<!DOCTYPE html>
@@ -234,17 +237,21 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090d13">
 <meta name="description" content="Probabilidades de futebol por estatística — sem odds. Copa do Mundo e Brasileirão.">
-<title>Probabilidades FC</title>
+<title>Probabilidades FC — Jogos de hoje e amanhã</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
   :root {{
     --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17;
     --line:#1a2433; --line2:#131b27;
-    --bone:#e9ede9; --mut:#8593a3; --faint:#566678;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#7a8fa3;
     --em:#34e2a0; --em-soft:#1e8f66; --amber:#f1b24a; --slate:#5d6e84;
     --r:14px;
   }}
   * {{ box-sizing:border-box; }}
+  .skip-link {{ position:absolute; left:-9999px; top:6px; z-index:999; padding:8px 16px;
+    background:var(--em); color:#04130d; font-weight:700; border-radius:6px;
+    text-decoration:none; font-size:13px; }}
+  .skip-link:focus {{ left:50%; transform:translateX(-50%); outline:2px solid #04130d; }}
   html {{ scroll-behavior:smooth; }}
   body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
     background:
@@ -268,7 +275,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .dot {{ width:3px; height:3px; border-radius:50%; background:var(--faint); }}
   details.nota-toggle {{ max-width:680px; margin:18px auto 0; text-align:left; }}
   details.nota-toggle summary {{ cursor:pointer; font-size:11.5px; color:var(--faint); list-style:none;
-    padding:5px 0 5px 13px; border-left:2px solid var(--em-soft); user-select:none; }}
+    padding:5px 0 5px 13px; border-left:2px solid var(--em-soft); }}
   details.nota-toggle summary::-webkit-details-marker {{ display:none; }}
   details.nota-toggle summary::before {{ content:"ℹ  "; }}
   details.nota-toggle[open] summary::before {{ content:"ℹ  "; }}
@@ -280,16 +287,17 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 
   .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
-    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }}
+    color:var(--mut); padding:11px 18px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
   .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  .nav a:focus-visible {{ outline:2px solid var(--em); outline-offset:3px; }}
 
   main {{ max-width:1000px; margin:0 auto; padding:6px 16px 84px; }}
 
   .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
     padding:18px 2px 13px; background:var(--ink);
     box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }}
-  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; letter-spacing:-.3px; color:var(--bone); }}
+  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; letter-spacing:-.3px; color:var(--bone); margin:0; }}
   .daymark.hoje .day {{ color:var(--em); }}
   .day-sub {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }}
   .rule {{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }}
@@ -320,7 +328,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .leg-i {{ display:flex; flex-direction:column; min-width:0; }}
   .leg-e {{ align-items:center; }} .leg-v {{ align-items:flex-end; }}
   .leg-p {{ font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:18px; line-height:1; font-variant-numeric:tabular-nums; }}
-  .leg-p i {{ font-style:normal; font-size:11px; color:var(--faint); margin-left:1px; }}
+  .leg-p .pct {{ font-size:11px; color:var(--faint); margin-left:1px; }}
   .leg-m .leg-p {{ color:var(--em); }} .leg-e .leg-p {{ color:#aab6c6; }} .leg-v .leg-p {{ color:var(--amber); }}
   .leg-n {{ font-size:11px; color:var(--mut); margin-top:4px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }}
   .leg-e .leg-n {{ text-align:center; }} .leg-v .leg-n {{ text-align:right; }}
@@ -343,7 +351,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
     animation:grow .85s cubic-bezier(.22,1,.36,1) both; }}
   .m-val {{ width:44px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;
     font-weight:500; color:var(--bone); font-variant-numeric:tabular-nums; }}
-  .m-val i {{ font-style:normal; color:var(--faint); font-size:10px; margin-left:1px; }}
+  .m-val .pct {{ color:var(--faint); font-size:10px; margin-left:1px; }}
 
   .mkt-row {{ display:flex; align-items:center; gap:10px; margin:11px 0 0; padding:8px 12px;
     border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.02); }}
@@ -353,7 +361,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .mkt-m {{ font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#43efb0; font-variant-numeric:tabular-nums; }}
   .mkt-e {{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:#aab6c6; font-variant-numeric:tabular-nums; }}
   .mkt-v {{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); font-variant-numeric:tabular-nums; }}
-  .mkt-m i,.mkt-e i,.mkt-v i {{ font-style:normal; font-size:9px; color:var(--faint); }}
+  .mkt-m .pct,.mkt-e .pct,.mkt-v .pct {{ font-size:9px; color:var(--faint); }}
   .mkt-sep {{ color:var(--faint); font-size:11px; }}
   .mkt-mg {{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--faint); white-space:nowrap; }}
   .mkt-sub {{ font-size:8px; letter-spacing:.4px; color:var(--faint); text-transform:none; font-weight:400; }}
@@ -414,6 +422,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <div class="brand">{marca}</div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
@@ -427,7 +436,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
     </details>
     {backup}
   </header>
-  <main>{secoes}</main>
+  <main id="main">{secoes}</main>
   <div class="placar-cerebro">{html.escape(placar)}</div>
   <footer><b>Probabilidades FC</b> · modelo Poisson + Dixon-Coles · dados do 365scores</footer>
 </body>
@@ -517,7 +526,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
         n = (t.get("ambiente") or {}).get("n", 0)
         scout = f'<div class="subhead">🕵️ Scout por xG</div><div class="ranks">{cards}</div>' if cards else ""
         secoes += f"""
-      <section class="liga-sec">
+      <section class="liga-sec" aria-label="{html.escape(t['nome'])}">
         <h2><span>{t['emoji']}</span> {html.escape(t['nome'])}
             <span class="liga-n">{n} jogos disputados</span></h2>
         {_amb_strip(t.get('ambiente'))}
@@ -538,17 +547,22 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
   :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
-    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
+    --bone:#e9ede9; --mut:#8593a3; --faint:#7a8fa3; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
   * {{ box-sizing:border-box; }}
+  .skip-link {{ position:absolute; left:-9999px; top:6px; z-index:999; padding:8px 16px;
+    background:var(--em); color:#04130d; font-weight:700; border-radius:6px;
+    text-decoration:none; font-size:13px; }}
+  .skip-link:focus {{ left:50%; transform:translateX(-50%); outline:2px solid #04130d; }}
   body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
   .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
-    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+    color:var(--mut); padding:11px 18px; border:1px solid var(--line); border-radius:999px; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
   .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  .nav a:focus-visible {{ outline:2px solid var(--em); outline-offset:3px; }}
   header {{ text-align:center; padding:28px 18px 6px; }}
   header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
   header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
@@ -606,6 +620,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
 </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <h1>📊 Tendências</h1>
     <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
@@ -615,7 +630,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
       (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
       É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
   </header>
-  <main>{secoes}</main>
+  <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · tendências dos jogos já disputados · dados do 365scores</footer>
 </body>
 </html>"""
@@ -653,7 +668,7 @@ def card_dica(nome_m, nome_v, hora, liga_sel, dicas) -> str:
                    f'{valor_badge}'
                    f'</div>'
                    f'<div class="dica-why">{why}</div></div>')
-    return (f'<article class="dcard">'
+    return (f'<article class="dcard" aria-label="{html.escape(nome_m)} vs {html.escape(nome_v)}">'
             f'<div class="card-top"><span class="liga-tag">{liga_sel}</span>'
             f'<span class="hora">{html.escape(hora or "")}</span></div>'
             f'<div class="match"><span class="team">{html.escape(nome_m)}</span>'
@@ -671,8 +686,8 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
         titulo = nomes.get(rotulo, rotulo)
         cls = "daymark hoje" if rotulo == "HOJE" else "daymark"
         secoes += f"""
-      <section>
-        <div class="{cls}"><span class="day">{titulo}</span>
+      <section aria-label="Jogos de {titulo}">
+        <div class="{cls}"><h2 class="day">{titulo}</h2>
           <span class="day-sub">{subtitulo}</span><span class="rule"></span>
           <span class="day-count">{len(cards)} jogo{'s' if len(cards) != 1 else ''}</span></div>
         <div class="grade">{''.join(cards)}</div>
@@ -690,17 +705,22 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
   :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
-    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
+    --bone:#e9ede9; --mut:#8593a3; --faint:#7a8fa3; --em:#34e2a0; --amber:#f1b24a; --r:14px; }}
   * {{ box-sizing:border-box; }}
+  .skip-link {{ position:absolute; left:-9999px; top:6px; z-index:999; padding:8px 16px;
+    background:var(--em); color:#04130d; font-weight:700; border-radius:6px;
+    text-decoration:none; font-size:13px; }}
+  .skip-link:focus {{ left:50%; transform:translateX(-50%); outline:2px solid #04130d; }}
   body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
   .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
-    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+    color:var(--mut); padding:11px 18px; border:1px solid var(--line); border-radius:999px; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
   .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  .nav a:focus-visible {{ outline:2px solid var(--em); outline-offset:3px; }}
   header {{ text-align:center; padding:28px 18px 6px; }}
   header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
   header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
@@ -711,7 +731,7 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
   main {{ max-width:1000px; margin:0 auto; padding:8px 16px 80px; }}
   .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
     padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }}
-  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; }}
+  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; margin:0; }}
   .daymark.hoje .day {{ color:var(--em); }}
   .day-sub {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }}
   .rule {{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }}
@@ -749,6 +769,7 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
 </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <h1>💡 Dicas</h1>
     <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
@@ -758,7 +779,7 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
       <b>e</b> o histórico dos dois times confirmar forte. Onde modelo e histórico discordam, não há dica
       (preferimos não indicar a indicar errado). Dias sem dica = jogos equilibrados. Aposte com responsabilidade.</div>
   </header>
-  <main>{secoes}</main>
+  <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>
 </body>
 </html>"""
@@ -790,7 +811,7 @@ def card_historico(row, liga_cfg=None) -> str:
 
     def chip(ok, txt, pct):
         ic = "✓" if ok else "✗"
-        return f'<span class="hchip {"ok" if ok else "no"}">{ic} {html.escape(txt)} <i>{pct}%</i></span>'
+        return f'<span class="hchip {"ok" if ok else "no"}">{ic} {html.escape(txt)} <span class="hchip-pct">{pct}%</span></span>'
 
     chips = (chip(idx_pick == idx_real, pick_full, round(max(p) * 100))
              + chip(over_call == (tot >= 3), "Over 2.5" if over_call else "Under 2.5",
@@ -798,7 +819,7 @@ def card_historico(row, liga_cfg=None) -> str:
              + chip(btts_call == (gm >= 1 and gv >= 1), "Ambas" if btts_call else "Ambas não",
                     round((f("pbtts") if btts_call else 1 - f("pbtts")) * 100)))
     selo = f"{liga_cfg.get('emoji', '')} {html.escape(liga_cfg.get('nome', ''))}" if liga_cfg else ""
-    return (f'<article class="hcard">'
+    return (f'<article class="hcard" aria-label="{nm} vs {nv}">'
             f'<div class="card-top"><span class="liga-tag">{selo}</span>'
             f'<span class="hora">{html.escape(row.get("hora", ""))}</span></div>'
             f'<div class="hplacar"><span class="pteam {cm}">{nm}</span>'
@@ -815,8 +836,8 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
             continue
         titulo = nomes.get(rotulo, rotulo)
         secoes += f"""
-      <section>
-        <div class="daymark"><span class="day">{titulo}</span>
+      <section aria-label="Jogos de {titulo}">
+        <div class="daymark"><h2 class="day">{titulo}</h2>
           <span class="day-sub">{subtitulo}</span><span class="rule"></span>
           <span class="day-count">{len(cards)} jogo{'s' if len(cards) != 1 else ''}</span></div>
         <div class="grade">{''.join(cards)}</div>
@@ -841,17 +862,22 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
   :root {{ --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17; --line:#1a2433; --line2:#131b27;
-    --bone:#e9ede9; --mut:#8593a3; --faint:#566678; --em:#34e2a0; --amber:#f1b24a; --red:#ef6a6a; --r:14px; }}
+    --bone:#e9ede9; --mut:#8593a3; --faint:#7a8fa3; --em:#34e2a0; --amber:#f1b24a; --red:#ef6a6a; --r:14px; }}
   * {{ box-sizing:border-box; }}
+  .skip-link {{ position:absolute; left:-9999px; top:6px; z-index:999; padding:8px 16px;
+    background:var(--em); color:#04130d; font-weight:700; border-radius:6px;
+    text-decoration:none; font-size:13px; }}
+  .skip-link:focus {{ left:50%; transform:translateX(-50%); outline:2px solid #04130d; }}
   body {{ margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
     background: radial-gradient(900px 480px at 50% -260px,#11251c 0%,transparent 62%),
       radial-gradient(720px 420px at 100% -80px,#0e1a2a 0%,transparent 60%), var(--ink);
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
   .nav {{ display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }}
   .nav a {{ font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
-    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; }}
+    color:var(--mut); padding:11px 18px; border:1px solid var(--line); border-radius:999px; }}
   .nav a.on {{ color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }}
   .nav a:hover {{ border-color:var(--em); color:var(--bone); }}
+  .nav a:focus-visible {{ outline:2px solid var(--em); outline-offset:3px; }}
   header {{ text-align:center; padding:28px 18px 6px; }}
   header h1 {{ margin:0; font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:26px; }}
   header .sub {{ margin-top:8px; font-size:13px; color:var(--mut); }}
@@ -863,7 +889,7 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
   main {{ max-width:1000px; margin:0 auto; padding:8px 16px 80px; }}
   .daymark {{ display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
     padding:18px 2px 13px; background:var(--ink); box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }}
-  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; color:var(--bone); }}
+  .day {{ font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; color:var(--bone); margin:0; }}
   .day-sub {{ font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }}
   .rule {{ flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }}
   .day-count {{ font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--faint); }}
@@ -885,10 +911,10 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
   .hchips {{ display:flex; flex-wrap:wrap; gap:6px; }}
   .hchip {{ font-family:'IBM Plex Mono',monospace; font-size:10.5px; padding:3px 9px; border-radius:999px;
     border:1px solid var(--line); color:var(--mut); }}
-  .hchip i {{ font-style:normal; color:var(--faint); }}
+  .hchip .hchip-pct {{ color:var(--faint); }}
   .hchip.ok {{ color:var(--em); border-color:rgba(52,226,160,.35); background:rgba(52,226,160,.07); }}
   .hchip.no {{ color:var(--red); border-color:rgba(239,106,106,.3); }}
-  .hchip.ok i {{ color:#9fd8c2; }}
+  .hchip.ok .hchip-pct {{ color:#9fd8c2; }}
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; line-height:1.6; max-width:520px; margin-left:auto; margin-right:auto; }}
   footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
@@ -896,6 +922,7 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
 </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <h1>📅 Histórico</h1>
     <div class="sub">Resultado das partidas que apareceram — e se o modelo acertou</div>
@@ -903,7 +930,7 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
     {_nav("hist")}
     {resumo_html}
   </header>
-  <main>{secoes}</main>
+  <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · histórico real · sem odds</footer>
 </body>
 </html>"""

@@ -5,17 +5,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#090d13">
 <meta name="description" content="Probabilidades de futebol por estatística — sem odds. Copa do Mundo e Brasileirão.">
-<title>Probabilidades FC</title>
+<title>Probabilidades FC — Jogos de hoje e amanhã</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Hanken+Grotesk:wght@400;500;600;700&display=swap');
   :root {
     --ink:#090d13; --panel:#0c121c; --panel2:#0a0f17;
     --line:#1a2433; --line2:#131b27;
-    --bone:#e9ede9; --mut:#8593a3; --faint:#566678;
+    --bone:#e9ede9; --mut:#8593a3; --faint:#7a8fa3;
     --em:#34e2a0; --em-soft:#1e8f66; --amber:#f1b24a; --slate:#5d6e84;
     --r:14px;
   }
   * { box-sizing:border-box; }
+  .skip-link { position:absolute; left:-9999px; top:6px; z-index:999; padding:8px 16px;
+    background:var(--em); color:#04130d; font-weight:700; border-radius:6px;
+    text-decoration:none; font-size:13px; }
+  .skip-link:focus { left:50%; transform:translateX(-50%); outline:2px solid #04130d; }
   html { scroll-behavior:smooth; }
   body { margin:0; color:var(--bone); font-family:'Hanken Grotesk',system-ui,sans-serif;
     background:
@@ -39,7 +43,7 @@
   .dot { width:3px; height:3px; border-radius:50%; background:var(--faint); }
   details.nota-toggle { max-width:680px; margin:18px auto 0; text-align:left; }
   details.nota-toggle summary { cursor:pointer; font-size:11.5px; color:var(--faint); list-style:none;
-    padding:5px 0 5px 13px; border-left:2px solid var(--em-soft); user-select:none; }
+    padding:5px 0 5px 13px; border-left:2px solid var(--em-soft); }
   details.nota-toggle summary::-webkit-details-marker { display:none; }
   details.nota-toggle summary::before { content:"ℹ  "; }
   details.nota-toggle[open] summary::before { content:"ℹ  "; }
@@ -51,16 +55,17 @@
 
   .nav { display:flex; flex-wrap:wrap; justify-content:center; gap:8px; padding:16px 16px 0; }
   .nav a { font-family:'IBM Plex Mono',monospace; font-size:12px; letter-spacing:.5px; text-decoration:none;
-    color:var(--mut); padding:7px 16px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }
+    color:var(--mut); padding:11px 18px; border:1px solid var(--line); border-radius:999px; transition:all .15s; }
   .nav a.on { color:#04130d; background:var(--em); border-color:var(--em); font-weight:600; }
   .nav a:hover { border-color:var(--em); color:var(--bone); }
+  .nav a:focus-visible { outline:2px solid var(--em); outline-offset:3px; }
 
   main { max-width:1000px; margin:0 auto; padding:6px 16px 84px; }
 
   .daymark { display:flex; align-items:baseline; gap:13px; position:sticky; top:0; z-index:6;
     padding:18px 2px 13px; background:var(--ink);
     box-shadow:0 10px 18px -6px var(--ink), 0 1px 0 0 var(--line2); }
-  .day { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; letter-spacing:-.3px; color:var(--bone); }
+  .day { font-family:'Space Grotesk',sans-serif; font-weight:700; font-size:21px; letter-spacing:-.3px; color:var(--bone); margin:0; }
   .daymark.hoje .day { color:var(--em); }
   .day-sub { font-family:'IBM Plex Mono',monospace; font-size:11px; letter-spacing:1px; text-transform:uppercase; color:var(--mut); }
   .rule { flex:1; height:1px; background:linear-gradient(90deg,var(--line),transparent); }
@@ -91,7 +96,7 @@
   .leg-i { display:flex; flex-direction:column; min-width:0; }
   .leg-e { align-items:center; } .leg-v { align-items:flex-end; }
   .leg-p { font-family:'IBM Plex Mono',monospace; font-weight:600; font-size:18px; line-height:1; font-variant-numeric:tabular-nums; }
-  .leg-p i { font-style:normal; font-size:11px; color:var(--faint); margin-left:1px; }
+  .leg-p .pct { font-size:11px; color:var(--faint); margin-left:1px; }
   .leg-m .leg-p { color:var(--em); } .leg-e .leg-p { color:#aab6c6; } .leg-v .leg-p { color:var(--amber); }
   .leg-n { font-size:11px; color:var(--mut); margin-top:4px; max-width:130px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
   .leg-e .leg-n { text-align:center; } .leg-v .leg-n { text-align:right; }
@@ -114,7 +119,7 @@
     animation:grow .85s cubic-bezier(.22,1,.36,1) both; }
   .m-val { width:44px; text-align:right; font-family:'IBM Plex Mono',monospace; font-size:12.5px;
     font-weight:500; color:var(--bone); font-variant-numeric:tabular-nums; }
-  .m-val i { font-style:normal; color:var(--faint); font-size:10px; margin-left:1px; }
+  .m-val .pct { color:var(--faint); font-size:10px; margin-left:1px; }
 
   .mkt-row { display:flex; align-items:center; gap:10px; margin:11px 0 0; padding:8px 12px;
     border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.02); }
@@ -124,7 +129,7 @@
   .mkt-m { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:600; color:#43efb0; font-variant-numeric:tabular-nums; }
   .mkt-e { font-family:'IBM Plex Mono',monospace; font-size:13px; color:#aab6c6; font-variant-numeric:tabular-nums; }
   .mkt-v { font-family:'IBM Plex Mono',monospace; font-size:13px; color:var(--amber); font-variant-numeric:tabular-nums; }
-  .mkt-m i,.mkt-e i,.mkt-v i { font-style:normal; font-size:9px; color:var(--faint); }
+  .mkt-m .pct,.mkt-e .pct,.mkt-v .pct { font-size:9px; color:var(--faint); }
   .mkt-sep { color:var(--faint); font-size:11px; }
   .mkt-mg { font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--faint); white-space:nowrap; }
   .mkt-sub { font-size:8px; letter-spacing:.4px; color:var(--faint); text-transform:none; font-weight:400; }
@@ -185,29 +190,30 @@
 </style>
 </head>
 <body>
+  <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <div class="brand"><img class="logo-full" src="logo.png" alt="Probabilidades FC"></div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
-    <div class="status"><span>Poisson · Dixon-Coles</span><span class="dot"></span><span>Atualizado 30/06/2026 08:34</span></div>
-    <nav class="nav"><a class="on" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a></nav>
+    <div class="status"><span>Poisson · Dixon-Coles</span><span class="dot"></span><span>Atualizado 30/06/2026 11:07</span></div>
+    <nav class="nav" aria-label="Navegação principal"><a class="on" href="index.html" aria-current="page">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="" href="tendencias.html">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a></nav>
     <details class="nota-toggle">
       <summary>Sobre as probabilidades</summary>
       <div class="nota">Mostramos só os mercados validados por backtest (resultado, gols e ambas marcam) —
         escanteios e cartões saíram porque não superaram o palpite médio nos testes. As porcentagens são
         estimativas estatísticas (gols e xG do histórico recente); não são garantia — futebol tem zebra. Aposte com responsabilidade.</div>
     </details>
-    <div class="backup">Dados de backup — a coleta de hoje não rodou; mostrando a última atualização bem-sucedida.</div>
+    
   </header>
-  <main>
-      <section>
+  <main id="main">
+      <section aria-label="Jogos de Hoje">
         <div class="daymark hoje">
-          <span class="day">Hoje</span>
+          <h2 class="day">Hoje</h2>
           <span class="day-sub">terça, 30/06</span>
           <span class="rule"></span>
           <span class="day-count">4 jogos</span>
         </div>
         <div class="grade">
-    <article class="card">
+    <article class="card" aria-label="Costa do Marfim vs Noruega">
       <div class="card-top">
         <span class="liga-tag">🌍 Copa do Mundo 2026</span>
         <span class="hora">14:00</span>
@@ -216,24 +222,472 @@
         <span class="team">Costa do Marfim</span><span class="vs">vs</span><span class="team">Noruega</span>
       </div>
 
-      <div class="forca" role="img" aria-label="Costa do Marfim 44%, empate 25%, Noruega 31%">
-        <span class="seg seg-m" style="--w:44%"></span>
-        <span class="seg seg-e" style="--w:25%"></span>
-        <span class="seg seg-v" style="--w:31%"></span>
+      <div class="forca" role="img" aria-label="Costa do Marfim 46%, empate 26%, Noruega 28%">
+        <span class="seg seg-m" style="--w:46%"></span>
+        <span class="seg seg-e" style="--w:26%"></span>
+        <span class="seg seg-v" style="--w:28%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">44<i>%</i></span><span class="leg-n">Costa do Marfim</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">25<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">31<i>%</i></span><span class="leg-n">Noruega</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">46<span class="pct">%</span></span><span class="leg-n">Costa do Marfim</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">26<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">28<span class="pct">%</span></span><span class="leg-n">Noruega</span></div>
       </div>
 
       <div class="leitura">
         <span class="leitura-tag">Leitura</span>
         <span class="leitura-val">Ambas marcam</span>
-        <span class="leitura-pct">62%</span>
+        <span class="leitura-pct">64%</span>
       </div>
 
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:82%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">82<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:60%;background:rgba(52,226,160,0.67)"></span></span><span class="m-val">60<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<i>%</i></span></div></div>
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:94%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">94<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:84%;background:rgba(52,226,160,0.82)"></span></span><span class="m-val">84<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:64%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">64<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">27<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">28<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">45<span class="pct">%</span></span></span><span class="mkt-mg">2.4% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +19pp vs mkt em Costa do Marfim</span></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–1</span>
+          <span class="palpite-prob">9%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>1.4</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="França vs Suécia">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">18:00</span>
+      </div>
+      <div class="match">
+        <span class="team">França</span><span class="vs">vs</span><span class="team">Suécia</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="França 65%, empate 22%, Suécia 13%">
+        <span class="seg seg-m" style="--w:65%"></span>
+        <span class="seg seg-e" style="--w:22%"></span>
+        <span class="seg seg-v" style="--w:13%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">65<span class="pct">%</span></span><span class="leg-n">França</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">22<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">13<span class="pct">%</span></span><span class="leg-n">Suécia</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória França</span>
+        <span class="leitura-pct">65%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:94%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">94<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:82%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">82<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:58%;background:rgba(52,226,160,0.66)"></span></span><span class="m-val">58<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:53%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">53<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">75<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">16<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">9<span class="pct">%</span></span></span><span class="mkt-mg">2.0% mg</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–0</span>
+          <span class="palpite-prob">11%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>2.1</b><span class="xg-sep">·</span><b>0.9</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="Botafogo-SP vs CRB">
+      <div class="card-top">
+        <span class="liga-tag">🥈 Brasileirão Série B</span>
+        <span class="hora">20:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Botafogo-SP</span><span class="vs">vs</span><span class="team">CRB</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Botafogo-SP 44%, empate 26%, CRB 29%">
+        <span class="seg seg-m" style="--w:44%"></span>
+        <span class="seg seg-e" style="--w:26%"></span>
+        <span class="seg seg-v" style="--w:29%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">44<span class="pct">%</span></span><span class="leg-n">Botafogo-SP</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">26<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">29<span class="pct">%</span></span><span class="leg-n">CRB</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória Botafogo-SP</span>
+        <span class="leitura-pct">44%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:65%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">65<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:39%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">39<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:44%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">44<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">42<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">29<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">28<span class="pct">%</span></span></span><span class="mkt-mg">3.2% mg</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">1–0</span>
+          <span class="palpite-prob">14%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.3</b><span class="xg-sep">·</span><b>1.0</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="México vs Equador">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">22:00</span>
+      </div>
+      <div class="match">
+        <span class="team">México</span><span class="vs">vs</span><span class="team">Equador</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="México 48%, empate 32%, Equador 20%">
+        <span class="seg seg-m" style="--w:48%"></span>
+        <span class="seg seg-e" style="--w:32%"></span>
+        <span class="seg seg-v" style="--w:20%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">48<span class="pct">%</span></span><span class="leg-n">México</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">32<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">20<span class="pct">%</span></span><span class="leg-n">Equador</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória México</span>
+        <span class="leitura-pct">48%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:86%;background:rgba(52,226,160,0.83)"></span></span><span class="m-val">86<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:65%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">65<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:36%;background:rgba(52,226,160,0.52)"></span></span><span class="m-val">36<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:42%;background:rgba(52,226,160,0.56)"></span></span><span class="m-val">42<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">42<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">33<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">25<span class="pct">%</span></span></span><span class="mkt-mg">2.5% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +6pp vs mkt em México</span></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">1–0</span>
+          <span class="palpite-prob">14%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.3</b><span class="xg-sep">·</span><b>0.8</b></span>
+        </div>
+      </div>
+    </article></div>
+      </section>
+      <section aria-label="Jogos de Amanhã">
+        <div class="daymark">
+          <h2 class="day">Amanhã</h2>
+          <span class="day-sub">quarta, 01/07</span>
+          <span class="rule"></span>
+          <span class="day-count">3 jogos</span>
+        </div>
+        <div class="grade">
+    <article class="card" aria-label="Inglaterra vs RD Congo">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">13:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Inglaterra</span><span class="vs">vs</span><span class="team">RD Congo</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Inglaterra 60%, empate 26%, RD Congo 14%">
+        <span class="seg seg-m" style="--w:60%"></span>
+        <span class="seg seg-e" style="--w:26%"></span>
+        <span class="seg seg-v" style="--w:14%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">60<span class="pct">%</span></span><span class="leg-n">Inglaterra</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">26<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">14<span class="pct">%</span></span><span class="leg-n">RD Congo</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória Inglaterra</span>
+        <span class="leitura-pct">60%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:73%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">73<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:46%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">46<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:45%;background:rgba(52,226,160,0.58)"></span></span><span class="m-val">45<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">76<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">17<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">7<span class="pct">%</span></span></span><span class="mkt-mg">1.3% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +7pp vs mkt em RD Congo</span></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">1–0</span>
+          <span class="palpite-prob">13%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>0.7</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="Bélgica vs Senegal">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">17:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Bélgica</span><span class="vs">vs</span><span class="team">Senegal</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Bélgica 55%, empate 26%, Senegal 19%">
+        <span class="seg seg-m" style="--w:55%"></span>
+        <span class="seg seg-e" style="--w:26%"></span>
+        <span class="seg seg-v" style="--w:19%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">55<span class="pct">%</span></span><span class="leg-n">Bélgica</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">26<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">19<span class="pct">%</span></span><span class="leg-n">Senegal</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória Bélgica</span>
+        <span class="leitura-pct">55%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:93%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">93<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:79%;background:rgba(52,226,160,0.79)"></span></span><span class="m-val">79<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:54%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">54<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:55%;background:rgba(52,226,160,0.64)"></span></span><span class="m-val">55<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">43<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">30<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">27<span class="pct">%</span></span></span><span class="mkt-mg">2.5% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +11pp vs mkt em Bélgica</span></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–1</span>
+          <span class="palpite-prob">10%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>1.0</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="EUA vs Bósnia e Herzegovina">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">21:00</span>
+      </div>
+      <div class="match">
+        <span class="team">EUA</span><span class="vs">vs</span><span class="team">Bósnia e Herzegovina</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="EUA 61%, empate 21%, Bósnia e Herzegovina 18%">
+        <span class="seg seg-m" style="--w:61%"></span>
+        <span class="seg seg-e" style="--w:21%"></span>
+        <span class="seg seg-v" style="--w:18%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">61<span class="pct">%</span></span><span class="leg-n">EUA</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">21<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">18<span class="pct">%</span></span><span class="leg-n">Bósnia e Herzegovina</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Over 2.5 gols</span>
+        <span class="leitura-pct">69%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:96%;background:rgba(52,226,160,0.9)"></span></span><span class="m-val">96<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:88%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">88<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:69%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">69<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:65%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">65<span class="pct">%</span></span></div></div>
+      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–1</span>
+          <span class="palpite-prob">10%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>2.3</b><span class="xg-sep">·</span><b>1.2</b></span>
+        </div>
+      </div>
+    </article></div>
+      </section>
+      <section aria-label="Jogos de Quinta">
+        <div class="daymark">
+          <h2 class="day">Quinta</h2>
+          <span class="day-sub">02/07</span>
+          <span class="rule"></span>
+          <span class="day-count">4 jogos</span>
+        </div>
+        <div class="grade">
+    <article class="card" aria-label="Espanha vs Áustria">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">16:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Espanha</span><span class="vs">vs</span><span class="team">Áustria</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Espanha 71%, empate 20%, Áustria 9%">
+        <span class="seg seg-m" style="--w:71%"></span>
+        <span class="seg seg-e" style="--w:20%"></span>
+        <span class="seg seg-v" style="--w:9%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">71<span class="pct">%</span></span><span class="leg-n">Espanha</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">20<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">9<span class="pct">%</span></span><span class="leg-n">Áustria</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória Espanha</span>
+        <span class="leitura-pct">71%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:93%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">93<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:78%;background:rgba(52,226,160,0.78)"></span></span><span class="m-val">78<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:53%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">53<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:43%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">43<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">72<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">18<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">9<span class="pct">%</span></span></span><span class="mkt-mg">3.8% mg</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–0</span>
+          <span class="palpite-prob">14%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>2.1</b><span class="xg-sep">·</span><b>0.6</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="Cuiabá vs América-MG">
+      <div class="card-top">
+        <span class="liga-tag">🥈 Brasileirão Série B</span>
+        <span class="hora">20:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Cuiabá</span><span class="vs">vs</span><span class="team">América-MG</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Cuiabá 53%, empate 24%, América-MG 22%">
+        <span class="seg seg-m" style="--w:53%"></span>
+        <span class="seg seg-e" style="--w:24%"></span>
+        <span class="seg seg-v" style="--w:22%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">53<span class="pct">%</span></span><span class="leg-n">Cuiabá</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">24<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">22<span class="pct">%</span></span><span class="leg-n">América-MG</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Vitória Cuiabá</span>
+        <span class="leitura-pct">53%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:67%;background:rgba(52,226,160,0.72)"></span></span><span class="m-val">67<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:42%;background:rgba(52,226,160,0.56)"></span></span><span class="m-val">42<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:44%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">44<span class="pct">%</span></span></div></div>
+      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">1–0</span>
+          <span class="palpite-prob">15%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.5</b><span class="xg-sep">·</span><b>0.9</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="Portugal vs Croácia">
+      <div class="card-top">
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">20:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Portugal</span><span class="vs">vs</span><span class="team">Croácia</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Portugal 53%, empate 27%, Croácia 20%">
+        <span class="seg seg-m" style="--w:53%"></span>
+        <span class="seg seg-e" style="--w:27%"></span>
+        <span class="seg seg-v" style="--w:20%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">53<span class="pct">%</span></span><span class="leg-n">Portugal</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">27<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">20<span class="pct">%</span></span><span class="leg-n">Croácia</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Ambas marcam</span>
+        <span class="leitura-pct">54%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:77%;background:rgba(52,226,160,0.78)"></span></span><span class="m-val">77<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:52%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">52<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:54%;background:rgba(52,226,160,0.63)"></span></span><span class="m-val">54<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">54<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">27<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">19<span class="pct">%</span></span></span><span class="mkt-mg">2.8% mg</span></div>
+      <div class="delta-slot"></div>
+      
+
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">2–1</span>
+          <span class="palpite-prob">10%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>1.7</b><span class="xg-sep">·</span><b>1.0</b></span>
+        </div>
+      </div>
+    </article>
+    <article class="card" aria-label="Fortaleza vs Ponte Preta">
+      <div class="card-top">
+        <span class="liga-tag">🥈 Brasileirão Série B</span>
+        <span class="hora">21:00</span>
+      </div>
+      <div class="match">
+        <span class="team">Fortaleza</span><span class="vs">vs</span><span class="team">Ponte Preta</span>
+      </div>
+
+      <div class="forca" role="img" aria-label="Fortaleza 66%, empate 16%, Ponte Preta 17%">
+        <span class="seg seg-m" style="--w:66%"></span>
+        <span class="seg seg-e" style="--w:16%"></span>
+        <span class="seg seg-v" style="--w:17%"></span>
+      </div>
+      <div class="leg">
+        <div class="leg-i leg-m"><span class="leg-p">66<span class="pct">%</span></span><span class="leg-n">Fortaleza</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">16<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">17<span class="pct">%</span></span><span class="leg-n">Ponte Preta</span></div>
+      </div>
+
+      <div class="leitura">
+        <span class="leitura-tag">Leitura</span>
+        <span class="leitura-val">Over 2.5 gols</span>
+        <span class="leitura-pct">72%</span>
+      </div>
+
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:98%;background:rgba(52,226,160,0.91)"></span></span><span class="m-val">98<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:88%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">88<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:72%;background:rgba(52,226,160,0.75)"></span></span><span class="m-val">72<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:64%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">64<span class="pct">%</span></span></div></div>
       <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
       <div class="delta-slot"></div>
       
@@ -246,39 +700,48 @@
         </div>
         <div class="xg-box">
           <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.7</b><span class="xg-sep">·</span><b>1.4</b></span>
+          <span class="xg-vals"><b>2.5</b><span class="xg-sep">·</span><b>1.2</b></span>
         </div>
       </div>
-    </article>
-    <article class="card">
+    </article></div>
+      </section>
+      <section aria-label="Jogos de Sexta">
+        <div class="daymark">
+          <h2 class="day">Sexta</h2>
+          <span class="day-sub">03/07</span>
+          <span class="rule"></span>
+          <span class="day-count">4 jogos</span>
+        </div>
+        <div class="grade">
+    <article class="card" aria-label="Suíça vs Argélia">
       <div class="card-top">
         <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">18:00</span>
+        <span class="hora">00:00</span>
       </div>
       <div class="match">
-        <span class="team">França</span><span class="vs">vs</span><span class="team">Suécia</span>
+        <span class="team">Suíça</span><span class="vs">vs</span><span class="team">Argélia</span>
       </div>
 
-      <div class="forca" role="img" aria-label="França 67%, empate 20%, Suécia 14%">
+      <div class="forca" role="img" aria-label="Suíça 67%, empate 20%, Argélia 13%">
         <span class="seg seg-m" style="--w:67%"></span>
         <span class="seg seg-e" style="--w:20%"></span>
-        <span class="seg seg-v" style="--w:14%"></span>
+        <span class="seg seg-v" style="--w:13%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">67<i>%</i></span><span class="leg-n">França</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">20<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">14<i>%</i></span><span class="leg-n">Suécia</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">67<span class="pct">%</span></span><span class="leg-n">Suíça</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">20<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">13<span class="pct">%</span></span><span class="leg-n">Argélia</span></div>
       </div>
 
       <div class="leitura">
         <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória França</span>
+        <span class="leitura-val">Vitória Suíça</span>
         <span class="leitura-pct">67%</span>
       </div>
 
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:83%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">83<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:55%;background:rgba(52,226,160,0.64)"></span></span><span class="m-val">55<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:85%;background:rgba(52,226,160,0.83)"></span></span><span class="m-val">85<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:64%;background:rgba(52,226,160,0.7)"></span></span><span class="m-val">64<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:57%;background:rgba(52,226,160,0.65)"></span></span><span class="m-val">57<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">47<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">30<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">23<span class="pct">%</span></span></span><span class="mkt-mg">1.7% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +20pp vs mkt em Suíça</span></div>
       
 
       <div class="palpite-row">
@@ -289,315 +752,39 @@
         </div>
         <div class="xg-box">
           <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.3</b><span class="xg-sep">·</span><b>0.9</b></span>
+          <span class="xg-vals"><b>2.3</b><span class="xg-sep">·</span><b>1.0</b></span>
         </div>
       </div>
     </article>
-    <article class="card">
+    <article class="card" aria-label="Austrália vs Egito">
       <div class="card-top">
-        <span class="liga-tag">🥈 Brasileirão Série B</span>
-        <span class="hora">20:00</span>
+        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
+        <span class="hora">15:00</span>
       </div>
       <div class="match">
-        <span class="team">Botafogo-SP</span><span class="vs">vs</span><span class="team">CRB</span>
+        <span class="team">Austrália</span><span class="vs">vs</span><span class="team">Egito</span>
       </div>
 
-      <div class="forca" role="img" aria-label="Botafogo-SP 38%, empate 29%, CRB 33%">
-        <span class="seg seg-m" style="--w:38%"></span>
-        <span class="seg seg-e" style="--w:29%"></span>
-        <span class="seg seg-v" style="--w:33%"></span>
+      <div class="forca" role="img" aria-label="Austrália 46%, empate 31%, Egito 23%">
+        <span class="seg seg-m" style="--w:46%"></span>
+        <span class="seg seg-e" style="--w:31%"></span>
+        <span class="seg seg-v" style="--w:23%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">38<i>%</i></span><span class="leg-n">Botafogo-SP</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">29<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">33<i>%</i></span><span class="leg-n">CRB</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">46<span class="pct">%</span></span><span class="leg-n">Austrália</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">31<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">23<span class="pct">%</span></span><span class="leg-n">Egito</span></div>
       </div>
 
       <div class="leitura">
         <span class="leitura-tag">Leitura</span>
         <span class="leitura-val">Ambas marcam</span>
-        <span class="leitura-pct">49%</span>
+        <span class="leitura-pct">47%</span>
       </div>
 
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:70%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">70<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:43%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">43<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">11%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.3</b><span class="xg-sep">·</span><b>1.1</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">22:00</span>
-      </div>
-      <div class="match">
-        <span class="team">México</span><span class="vs">vs</span><span class="team">Equador</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="México 50%, empate 29%, Equador 21%">
-        <span class="seg seg-m" style="--w:50%"></span>
-        <span class="seg seg-e" style="--w:29%"></span>
-        <span class="seg seg-v" style="--w:21%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">50<i>%</i></span><span class="leg-n">México</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">29<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">21<i>%</i></span><span class="leg-n">Equador</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória México</span>
-        <span class="leitura-pct">50%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:89%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">89<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:66%;background:rgba(52,226,160,0.71)"></span></span><span class="m-val">66<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:39%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">39<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:43%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">43<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">14%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.4</b><span class="xg-sep">·</span><b>0.8</b></span>
-        </div>
-      </div>
-    </article></div>
-      </section>
-      <section>
-        <div class="daymark">
-          <span class="day">Amanhã</span>
-          <span class="day-sub">quarta, 01/07</span>
-          <span class="rule"></span>
-          <span class="day-count">3 jogos</span>
-        </div>
-        <div class="grade">
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">13:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Inglaterra</span><span class="vs">vs</span><span class="team">RD Congo</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Inglaterra 56%, empate 26%, RD Congo 18%">
-        <span class="seg seg-m" style="--w:56%"></span>
-        <span class="seg seg-e" style="--w:26%"></span>
-        <span class="seg seg-v" style="--w:18%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">56<i>%</i></span><span class="leg-n">Inglaterra</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">26<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">18<i>%</i></span><span class="leg-n">RD Congo</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória Inglaterra</span>
-        <span class="leitura-pct">56%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:70%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">70<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:44%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">44<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:45%;background:rgba(52,226,160,0.58)"></span></span><span class="m-val">45<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">14%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.6</b><span class="xg-sep">·</span><b>0.8</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">17:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Bélgica</span><span class="vs">vs</span><span class="team">Senegal</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Bélgica 60%, empate 22%, Senegal 18%">
-        <span class="seg seg-m" style="--w:60%"></span>
-        <span class="seg seg-e" style="--w:22%"></span>
-        <span class="seg seg-v" style="--w:18%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">60<i>%</i></span><span class="leg-n">Bélgica</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">22<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">18<i>%</i></span><span class="leg-n">Senegal</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Over 2.5 gols</span>
-        <span class="leitura-pct">61%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:83%;background:rgba(52,226,160,0.81)"></span></span><span class="m-val">83<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:58%;background:rgba(52,226,160,0.66)"></span></span><span class="m-val">58<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">2–1</span>
-          <span class="palpite-prob">10%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.1</b><span class="xg-sep">·</span><b>1.1</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">21:00</span>
-      </div>
-      <div class="match">
-        <span class="team">EUA</span><span class="vs">vs</span><span class="team">Bósnia e Herzegovina</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="EUA 59%, empate 23%, Bósnia e Herzegovina 18%">
-        <span class="seg seg-m" style="--w:59%"></span>
-        <span class="seg seg-e" style="--w:23%"></span>
-        <span class="seg seg-v" style="--w:18%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">59<i>%</i></span><span class="leg-n">EUA</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">23<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">18<i>%</i></span><span class="leg-n">Bósnia e Herzegovina</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória EUA</span>
-        <span class="leitura-pct">59%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:94%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">94<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:81%;background:rgba(52,226,160,0.8)"></span></span><span class="m-val">81<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:58%;background:rgba(52,226,160,0.66)"></span></span><span class="m-val">58<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:56%;background:rgba(52,226,160,0.65)"></span></span><span class="m-val">56<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">2–1</span>
-          <span class="palpite-prob">10%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.0</b><span class="xg-sep">·</span><b>1.0</b></span>
-        </div>
-      </div>
-    </article></div>
-      </section>
-      <section>
-        <div class="daymark">
-          <span class="day">Quinta</span>
-          <span class="day-sub">02/07</span>
-          <span class="rule"></span>
-          <span class="day-count">4 jogos</span>
-        </div>
-        <div class="grade">
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">16:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Espanha</span><span class="vs">vs</span><span class="team">Áustria</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Espanha 66%, empate 22%, Áustria 12%">
-        <span class="seg seg-m" style="--w:66%"></span>
-        <span class="seg seg-e" style="--w:22%"></span>
-        <span class="seg seg-v" style="--w:12%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">66<i>%</i></span><span class="leg-n">Espanha</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">22<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">12<i>%</i></span><span class="leg-n">Áustria</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória Espanha</span>
-        <span class="leitura-pct">66%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:93%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">93<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:76%;background:rgba(52,226,160,0.77)"></span></span><span class="m-val">76<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:45%;background:rgba(52,226,160,0.58)"></span></span><span class="m-val">45<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">2–0</span>
-          <span class="palpite-prob">13%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.0</b><span class="xg-sep">·</span><b>0.7</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">20:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Portugal</span><span class="vs">vs</span><span class="team">Croácia</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Portugal 59%, empate 24%, Croácia 17%">
-        <span class="seg seg-m" style="--w:59%"></span>
-        <span class="seg seg-e" style="--w:24%"></span>
-        <span class="seg seg-v" style="--w:17%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">59<i>%</i></span><span class="leg-n">Portugal</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">24<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">17<i>%</i></span><span class="leg-n">Croácia</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória Portugal</span>
-        <span class="leitura-pct">59%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:93%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">93<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:75%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">75<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:50%;background:rgba(52,226,160,0.61)"></span></span><span class="m-val">50<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:88%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">88<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:69%;background:rgba(52,226,160,0.73)"></span></span><span class="m-val">69<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:41%;background:rgba(52,226,160,0.55)"></span></span><span class="m-val">41<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:47%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">47<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">28<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">34<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">39<span class="pct">%</span></span></span><span class="mkt-mg">2.7% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +18pp vs mkt em Austrália</span></div>
       
 
       <div class="palpite-row">
@@ -608,192 +795,11 @@
         </div>
         <div class="xg-box">
           <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>0.9</b></span>
+          <span class="xg-vals"><b>1.4</b><span class="xg-sep">·</span><b>0.9</b></span>
         </div>
       </div>
     </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🥈 Brasileirão Série B</span>
-        <span class="hora">20:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Cuiabá</span><span class="vs">vs</span><span class="team">América-MG</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Cuiabá 49%, empate 32%, América-MG 20%">
-        <span class="seg seg-m" style="--w:49%"></span>
-        <span class="seg seg-e" style="--w:32%"></span>
-        <span class="seg seg-v" style="--w:20%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">49<i>%</i></span><span class="leg-n">Cuiabá</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">32<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">20<i>%</i></span><span class="leg-n">América-MG</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória Cuiabá</span>
-        <span class="leitura-pct">49%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:84%;background:rgba(52,226,160,0.82)"></span></span><span class="m-val">84<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:58%;background:rgba(52,226,160,0.66)"></span></span><span class="m-val">58<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:30%;background:rgba(52,226,160,0.49)"></span></span><span class="m-val">30<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:36%;background:rgba(52,226,160,0.52)"></span></span><span class="m-val">36<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">17%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.2</b><span class="xg-sep">·</span><b>0.7</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🥈 Brasileirão Série B</span>
-        <span class="hora">21:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Fortaleza</span><span class="vs">vs</span><span class="team">Ponte Preta</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Fortaleza 58%, empate 24%, Ponte Preta 18%">
-        <span class="seg seg-m" style="--w:58%"></span>
-        <span class="seg seg-e" style="--w:24%"></span>
-        <span class="seg seg-v" style="--w:18%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">58<i>%</i></span><span class="leg-n">Fortaleza</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">24<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">18<i>%</i></span><span class="leg-n">Ponte Preta</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Vitória Fortaleza</span>
-        <span class="leitura-pct">58%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:93%;background:rgba(52,226,160,0.88)"></span></span><span class="m-val">93<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:77%;background:rgba(52,226,160,0.78)"></span></span><span class="m-val">77<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:52%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">52<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:51%;background:rgba(52,226,160,0.62)"></span></span><span class="m-val">51<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">11%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>0.9</b></span>
-        </div>
-      </div>
-    </article></div>
-      </section>
-      <section>
-        <div class="daymark">
-          <span class="day">Sexta</span>
-          <span class="day-sub">03/07</span>
-          <span class="rule"></span>
-          <span class="day-count">4 jogos</span>
-        </div>
-        <div class="grade">
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">00:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Suíça</span><span class="vs">vs</span><span class="team">Argélia</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Suíça 57%, empate 23%, Argélia 20%">
-        <span class="seg seg-m" style="--w:57%"></span>
-        <span class="seg seg-e" style="--w:23%"></span>
-        <span class="seg seg-v" style="--w:20%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">57<i>%</i></span><span class="leg-n">Suíça</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">23<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">20<i>%</i></span><span class="leg-n">Argélia</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Over 2.5 gols</span>
-        <span class="leitura-pct">59%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:95%;background:rgba(52,226,160,0.89)"></span></span><span class="m-val">95<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:81%;background:rgba(52,226,160,0.8)"></span></span><span class="m-val">81<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:59%;background:rgba(52,226,160,0.67)"></span></span><span class="m-val">59<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:58%;background:rgba(52,226,160,0.66)"></span></span><span class="m-val">58<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">2–1</span>
-          <span class="palpite-prob">10%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.0</b><span class="xg-sep">·</span><b>1.1</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
-      <div class="card-top">
-        <span class="liga-tag">🌍 Copa do Mundo 2026</span>
-        <span class="hora">15:00</span>
-      </div>
-      <div class="match">
-        <span class="team">Austrália</span><span class="vs">vs</span><span class="team">Egito</span>
-      </div>
-
-      <div class="forca" role="img" aria-label="Austrália 42%, empate 30%, Egito 28%">
-        <span class="seg seg-m" style="--w:42%"></span>
-        <span class="seg seg-e" style="--w:30%"></span>
-        <span class="seg seg-v" style="--w:28%"></span>
-      </div>
-      <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">42<i>%</i></span><span class="leg-n">Austrália</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">30<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">28<i>%</i></span><span class="leg-n">Egito</span></div>
-      </div>
-
-      <div class="leitura">
-        <span class="leitura-tag">Leitura</span>
-        <span class="leitura-val">Ambas marcam</span>
-        <span class="leitura-pct">46%</span>
-      </div>
-
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:89%;background:rgba(52,226,160,0.85)"></span></span><span class="m-val">89<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:67%;background:rgba(52,226,160,0.72)"></span></span><span class="m-val">67<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:39%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">39<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:46%;background:rgba(52,226,160,0.59)"></span></span><span class="m-val">46<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
-      
-
-      <div class="palpite-row">
-        <div class="palpite-box">
-          <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">1–0</span>
-          <span class="palpite-prob">13%</span>
-        </div>
-        <div class="xg-box">
-          <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.3</b><span class="xg-sep">·</span><b>1.0</b></span>
-        </div>
-      </div>
-    </article>
-    <article class="card">
+    <article class="card" aria-label="Argentina vs Cabo Verde">
       <div class="card-top">
         <span class="liga-tag">🌍 Copa do Mundo 2026</span>
         <span class="hora">19:00</span>
@@ -802,41 +808,41 @@
         <span class="team">Argentina</span><span class="vs">vs</span><span class="team">Cabo Verde</span>
       </div>
 
-      <div class="forca" role="img" aria-label="Argentina 69%, empate 21%, Cabo Verde 11%">
-        <span class="seg seg-m" style="--w:69%"></span>
-        <span class="seg seg-e" style="--w:21%"></span>
-        <span class="seg seg-v" style="--w:11%"></span>
+      <div class="forca" role="img" aria-label="Argentina 65%, empate 24%, Cabo Verde 10%">
+        <span class="seg seg-m" style="--w:65%"></span>
+        <span class="seg seg-e" style="--w:24%"></span>
+        <span class="seg seg-v" style="--w:10%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">69<i>%</i></span><span class="leg-n">Argentina</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">21<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">11<i>%</i></span><span class="leg-n">Cabo Verde</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">65<span class="pct">%</span></span><span class="leg-n">Argentina</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">24<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">10<span class="pct">%</span></span><span class="leg-n">Cabo Verde</span></div>
       </div>
 
       <div class="leitura">
         <span class="leitura-tag">Leitura</span>
         <span class="leitura-val">Vitória Argentina</span>
-        <span class="leitura-pct">69%</span>
+        <span class="leitura-pct">65%</span>
       </div>
 
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:92%;background:rgba(52,226,160,0.87)"></span></span><span class="m-val">92<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:75%;background:rgba(52,226,160,0.76)"></span></span><span class="m-val">75<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:49%;background:rgba(52,226,160,0.6)"></span></span><span class="m-val">49<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:42%;background:rgba(52,226,160,0.56)"></span></span><span class="m-val">42<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:90%;background:rgba(52,226,160,0.86)"></span></span><span class="m-val">90<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:71%;background:rgba(52,226,160,0.74)"></span></span><span class="m-val">71<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:44%;background:rgba(52,226,160,0.57)"></span></span><span class="m-val">44<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:40%;background:rgba(52,226,160,0.55)"></span></span><span class="m-val">40<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">83<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">12<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">5<span class="pct">%</span></span></span><span class="mkt-mg">1.7% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +5pp vs mkt em Cabo Verde</span></div>
       
 
       <div class="palpite-row">
         <div class="palpite-box">
           <span class="palpite-lbl">Palpite</span>
-          <span class="palpite-placar">2–0</span>
-          <span class="palpite-prob">14%</span>
+          <span class="palpite-placar">1–0</span>
+          <span class="palpite-prob">15%</span>
         </div>
         <div class="xg-box">
           <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>2.0</b><span class="xg-sep">·</span><b>0.6</b></span>
+          <span class="xg-vals"><b>1.8</b><span class="xg-sep">·</span><b>0.6</b></span>
         </div>
       </div>
     </article>
-    <article class="card">
+    <article class="card" aria-label="Colômbia vs Gana">
       <div class="card-top">
         <span class="liga-tag">🌍 Copa do Mundo 2026</span>
         <span class="hora">22:30</span>
@@ -845,26 +851,26 @@
         <span class="team">Colômbia</span><span class="vs">vs</span><span class="team">Gana</span>
       </div>
 
-      <div class="forca" role="img" aria-label="Colômbia 52%, empate 29%, Gana 18%">
-        <span class="seg seg-m" style="--w:52%"></span>
-        <span class="seg seg-e" style="--w:29%"></span>
-        <span class="seg seg-v" style="--w:18%"></span>
+      <div class="forca" role="img" aria-label="Colômbia 51%, empate 32%, Gana 17%">
+        <span class="seg seg-m" style="--w:51%"></span>
+        <span class="seg seg-e" style="--w:32%"></span>
+        <span class="seg seg-v" style="--w:17%"></span>
       </div>
       <div class="leg">
-        <div class="leg-i leg-m"><span class="leg-p">52<i>%</i></span><span class="leg-n">Colômbia</span></div>
-        <div class="leg-i leg-e"><span class="leg-p">29<i>%</i></span><span class="leg-n">Empate</span></div>
-        <div class="leg-i leg-v"><span class="leg-p">18<i>%</i></span><span class="leg-n">Gana</span></div>
+        <div class="leg-i leg-m"><span class="leg-p">51<span class="pct">%</span></span><span class="leg-n">Colômbia</span></div>
+        <div class="leg-i leg-e"><span class="leg-p">32<span class="pct">%</span></span><span class="leg-n">Empate</span></div>
+        <div class="leg-i leg-v"><span class="leg-p">17<span class="pct">%</span></span><span class="leg-n">Gana</span></div>
       </div>
 
       <div class="leitura">
         <span class="leitura-tag">Leitura</span>
         <span class="leitura-val">Vitória Colômbia</span>
-        <span class="leitura-pct">52%</span>
+        <span class="leitura-pct">51%</span>
       </div>
 
-      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:87%;background:rgba(52,226,160,0.84)"></span></span><span class="m-val">87<i>%</i></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:62%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">62<i>%</i></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:35%;background:rgba(52,226,160,0.52)"></span></span><span class="m-val">35<i>%</i></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:39%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">39<i>%</i></span></div></div>
-      <div class="mkt-row mkt-vazio"><span class="mkt-lbl">Mercado</span><span class="mkt-none">odds não disponíveis</span></div>
-      <div class="delta-slot"></div>
+      <div class="bloco"><div class="eyebrow">Gols<span class="eyebrow-x">total da partida</span></div><div class="m"><span class="m-lbl">+0.5 gols</span><span class="m-track"><span class="fill" style="--w:85%;background:rgba(52,226,160,0.83)"></span></span><span class="m-val">85<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+1.5 gols</span><span class="m-track"><span class="fill" style="--w:61%;background:rgba(52,226,160,0.68)"></span></span><span class="m-val">61<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">+2.5 gols</span><span class="m-track"><span class="fill" style="--w:32%;background:rgba(52,226,160,0.5)"></span></span><span class="m-val">32<span class="pct">%</span></span></div><div class="m"><span class="m-lbl">Ambas marcam</span><span class="m-track"><span class="fill" style="--w:38%;background:rgba(52,226,160,0.54)"></span></span><span class="m-val">38<span class="pct">%</span></span></div></div>
+      <div class="mkt-row"><span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span><span class="mkt-vals"><span class="mkt-m">64<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-e">24<span class="pct">%</span></span><span class="mkt-sep">·</span><span class="mkt-v">12<span class="pct">%</span></span></span><span class="mkt-mg">2.2% mg</span></div>
+      <div class="delta-slot"><span class="delta-val">↑ +5pp vs mkt em Gana</span></div>
       
 
       <div class="palpite-row">
@@ -875,7 +881,7 @@
         </div>
         <div class="xg-box">
           <span class="xg-lbl">xG</span>
-          <span class="xg-vals"><b>1.4</b><span class="xg-sep">·</span><b>0.7</b></span>
+          <span class="xg-vals"><b>1.3</b><span class="xg-sep">·</span><b>0.7</b></span>
         </div>
       </div>
     </article></div>
