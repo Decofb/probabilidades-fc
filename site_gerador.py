@@ -58,11 +58,14 @@ def _bloco(titulo: str, extra: str, linhas: str) -> str:
 def _mercado_row(mkt) -> str:
     """Linha 'MERCADO' compacta — probabilidades implícitas do Oddschecker."""
     if mkt is None:
-        return ""
+        return ('<div class="mkt-row mkt-vazio">'
+                '<span class="mkt-lbl">Mercado</span>'
+                '<span class="mkt-none">odds não disponíveis</span>'
+                '</div>')
     pm, pe, pv = round(mkt.pm * 100), round(mkt.pe * 100), round(mkt.pv * 100)
     mg = round(mkt.margem * 100, 1)
     return (f'<div class="mkt-row">'
-            f'<span class="mkt-lbl">Mercado</span>'
+            f'<span class="mkt-lbl">Mercado <span class="mkt-sub">odds implícitas</span></span>'
             f'<span class="mkt-vals">'
             f'<span class="mkt-m">{pm}<i>%</i></span>'
             f'<span class="mkt-sep">·</span>'
@@ -135,11 +138,13 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
 
     mkt_html = _mercado_row(mercado)
 
-    # delta mais saliente (mandante ou visitante)
-    delta_html = ""
+    # delta mais saliente (mandante ou visitante) — sempre reserva espaço
+    delta_html = '<div class="delta-slot">'
     if mercado is not None:
-        delta_html = (_delta_tag(m.vitoria_mandante, mercado.pm, j.mandante) or
-                      _delta_tag(m.vitoria_visitante, mercado.pv, j.visitante))
+        tag = (_delta_tag(m.vitoria_mandante, mercado.pm, j.mandante) or
+               _delta_tag(m.vitoria_visitante, mercado.pv, j.visitante))
+        delta_html += tag
+    delta_html += '</div>'
 
     return f"""
     <article class="card">
@@ -173,9 +178,16 @@ def card_jogo(j: Jogo, m: ResultadoMercados, liga_cfg: dict | None = None,
       {delta_html}
       {_desfalques_html(desfalques, nome_m, nome_v)}
 
-      <div class="readout">
-        <span>Palpite <b>{m.palpite[0]}–{m.palpite[1]}</b> · {m.pct(m.prob_palpite)}%</span>
-        <span>xG <b>{m.gols_esperados_mandante:.1f}</b> · <b>{m.gols_esperados_visitante:.1f}</b></span>
+      <div class="palpite-row">
+        <div class="palpite-box">
+          <span class="palpite-lbl">Palpite</span>
+          <span class="palpite-placar">{m.palpite[0]}–{m.palpite[1]}</span>
+          <span class="palpite-prob">{m.pct(m.prob_palpite)}%</span>
+        </div>
+        <div class="xg-box">
+          <span class="xg-lbl">xG</span>
+          <span class="xg-vals"><b>{m.gols_esperados_mandante:.1f}</b><span class="xg-sep">·</span><b>{m.gols_esperados_visitante:.1f}</b></span>
+        </div>
       </div>
     </article>"""
 
@@ -242,7 +254,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
     background-attachment:fixed; -webkit-font-smoothing:antialiased; }}
   ::selection {{ background:var(--em); color:#04130d; }}
 
-  header {{ text-align:center; padding:42px 18px 26px; }}
+  header {{ text-align:center; padding:32px 18px 20px; }}
   .brand {{ display:flex; justify-content:center; align-items:center; }}
   .brand .logo-full {{ height:78px; max-width:86vw; object-fit:contain;
     filter:drop-shadow(0 8px 26px rgba(52,226,160,.16)); }}
@@ -254,8 +266,15 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
     display:flex; gap:10px; justify-content:center; align-items:center; flex-wrap:wrap; }}
   .status b {{ color:var(--em); font-weight:500; }}
   .dot {{ width:3px; height:3px; border-radius:50%; background:var(--faint); }}
-  .nota {{ max-width:680px; margin:18px auto 0; font-size:11.5px; line-height:1.55; color:var(--faint);
-    border-left:2px solid var(--em-soft); padding-left:13px; text-align:left; }}
+  details.nota-toggle {{ max-width:680px; margin:18px auto 0; text-align:left; }}
+  details.nota-toggle summary {{ cursor:pointer; font-size:11.5px; color:var(--faint); list-style:none;
+    padding:5px 0 5px 13px; border-left:2px solid var(--em-soft); user-select:none; }}
+  details.nota-toggle summary::-webkit-details-marker {{ display:none; }}
+  details.nota-toggle summary::before {{ content:"ℹ  "; }}
+  details.nota-toggle[open] summary::before {{ content:"ℹ  "; }}
+  .nota {{ font-size:11.5px; line-height:1.55; color:var(--faint);
+    border-left:2px solid var(--em-soft); padding-left:13px; text-align:left;
+    margin-top:6px; }}
   .backup {{ max-width:680px; margin:14px auto 0; padding:9px 14px; border-radius:10px; text-align:center;
     font-size:12.5px; color:#ffdada; background:rgba(220,40,40,.12); border:1px solid rgba(220,40,40,.35); }}
 
@@ -337,7 +356,20 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .mkt-m i,.mkt-e i,.mkt-v i {{ font-style:normal; font-size:9px; color:var(--faint); }}
   .mkt-sep {{ color:var(--faint); font-size:11px; }}
   .mkt-mg {{ font-family:'IBM Plex Mono',monospace; font-size:9px; color:var(--faint); white-space:nowrap; }}
-  .delta-val {{ display:block; margin-top:6px; font-family:'IBM Plex Mono',monospace; font-size:10px;
+  .mkt-sub {{ font-size:8px; letter-spacing:.4px; color:var(--faint); text-transform:none; font-weight:400; }}
+  .mkt-vazio {{ opacity:.45; }}
+  .mkt-none {{ font-family:'IBM Plex Mono',monospace; font-size:10px; color:var(--faint); flex:1; text-align:center; }}
+  /* Barra de legenda — quadrado colorido antes do nome de cada lado */
+  .leg-m .leg-n::before {{ content:""; display:inline-block; width:7px; height:7px; border-radius:1px;
+    background:var(--em); margin-right:4px; vertical-align:middle; flex-shrink:0; }}
+  .leg-e .leg-n::before {{ content:""; display:inline-block; width:7px; height:7px; border-radius:1px;
+    background:var(--slate); margin-right:4px; vertical-align:middle; flex-shrink:0; }}
+  .leg-v .leg-n::before {{ content:""; display:inline-block; width:7px; height:7px; border-radius:1px;
+    background:var(--amber); margin-right:4px; vertical-align:middle; flex-shrink:0; }}
+
+  /* Delta — slot sempre reservado (evita layout jump) */
+  .delta-slot {{ min-height:22px; margin-top:6px; }}
+  .delta-val {{ display:block; font-family:'IBM Plex Mono',monospace; font-size:10px;
     letter-spacing:.5px; color:#34e2a0; padding:3px 10px; border-radius:6px;
     background:rgba(52,226,160,.09); border:1px solid rgba(52,226,160,.2); }}
 
@@ -352,9 +384,22 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   .desf-tipo.susp {{ color:#f1b24a; }}
   .desf-tipo.les {{ color:#e85d5d; }}
 
-  .readout {{ display:flex; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-top:14px; padding-top:12px;
-    border-top:1px solid var(--line2); font-family:'IBM Plex Mono',monospace; font-size:10.5px; color:var(--faint); letter-spacing:.3px; }}
-  .readout b {{ color:#c2cdda; font-weight:600; }}
+  /* Palpite — substituiu .readout */
+  .palpite-row {{ display:flex; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line2); }}
+  .palpite-box {{ flex:1; display:flex; align-items:center; gap:8px; padding:8px 12px;
+    border:1px solid rgba(52,226,160,.22); border-radius:9px; background:rgba(52,226,160,.05); }}
+  .palpite-lbl {{ font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--faint); white-space:nowrap; }}
+  .palpite-placar {{ font-family:'IBM Plex Mono',monospace; font-weight:700; font-size:18px;
+    color:var(--bone); font-variant-numeric:tabular-nums; }}
+  .palpite-prob {{ margin-left:auto; font-family:'IBM Plex Mono',monospace; font-size:11px; color:var(--mut); }}
+  .xg-box {{ display:flex; align-items:center; gap:7px; padding:8px 12px;
+    border:1px solid var(--line); border-radius:9px; background:rgba(255,255,255,.02); }}
+  .xg-lbl {{ font-family:'IBM Plex Mono',monospace; font-size:9px; letter-spacing:1.2px;
+    text-transform:uppercase; color:var(--faint); }}
+  .xg-vals {{ font-family:'IBM Plex Mono',monospace; font-size:13px; color:#c2cdda; font-variant-numeric:tabular-nums; }}
+  .xg-vals b {{ font-weight:600; color:var(--bone); }}
+  .xg-sep {{ color:var(--faint); margin:0 3px; }}
 
   .vazio {{ text-align:center; color:var(--mut); margin-top:60px; }}
   .placar-cerebro {{ max-width:1000px; margin:14px auto 0; padding:13px 18px; text-align:center;
@@ -369,14 +414,17 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 </style>
 </head>
 <body>
-  {_nav("jogos")}
   <header>
     <div class="brand">{marca}</div>
     <div class="tagline">Probabilidades por estatística — <b>sem odds</b></div>
     <div class="status"><span>Poisson · Dixon-Coles</span><span class="dot"></span><span>Atualizado {data_geracao}</span></div>
-    <div class="nota">Mostramos só os mercados validados por backtest (resultado, gols e ambas marcam) —
-      escanteios e cartões saíram porque não superaram o palpite médio nos testes. As porcentagens são
-      estimativas estatísticas (gols e xG do histórico recente); não são garantia — futebol tem zebra. Aposte com responsabilidade.</div>
+    {_nav("jogos")}
+    <details class="nota-toggle">
+      <summary>Sobre as probabilidades</summary>
+      <div class="nota">Mostramos só os mercados validados por backtest (resultado, gols e ambas marcam) —
+        escanteios e cartões saíram porque não superaram o palpite médio nos testes. As porcentagens são
+        estimativas estatísticas (gols e xG do histórico recente); não são garantia — futebol tem zebra. Aposte com responsabilidade.</div>
+    </details>
     {backup}
   </header>
   <main>{secoes}</main>
@@ -558,11 +606,11 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
 </style>
 </head>
 <body>
-  {_nav("tend")}
   <header>
     <h1>📊 Tendências</h1>
     <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
     <div class="ts">xG · regressão à média · atualizado {data_geracao}</div>
+    {_nav("tend")}
     <div class="nota">Como ler: <b>xG</b> mostra a qualidade real das chances. Um time <b>azarado</b>
       (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
       É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
@@ -701,11 +749,11 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
 </style>
 </head>
 <body>
-  {_nav("dicas")}
   <header>
     <h1>💡 Dicas</h1>
     <div class="sub">O que o Cérebro indica explorar — hoje e amanhã</div>
     <div class="ts">só mercados validados · atualizado {data_geracao}</div>
+    {_nav("dicas")}
     <div class="nota">Modo <b>rígido</b>: só aparece o que é <b>muito provável</b> — o modelo precisa estar alto
       <b>e</b> o histórico dos dois times confirmar forte. Onde modelo e histórico discordam, não há dica
       (preferimos não indicar a indicar errado). Dias sem dica = jogos equilibrados. Aposte com responsabilidade.</div>
@@ -848,11 +896,11 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
 </style>
 </head>
 <body>
-  {_nav("hist")}
   <header>
     <h1>📅 Histórico</h1>
     <div class="sub">Resultado das partidas que apareceram — e se o modelo acertou</div>
     <div class="ts">✓ acertou · ✗ errou · atualizado {data_geracao}</div>
+    {_nav("hist")}
     {resumo_html}
   </header>
   <main>{secoes}</main>
