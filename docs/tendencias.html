@@ -78,15 +78,44 @@
   footer { text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }
   footer b { color:var(--em); }
+
+  html[data-theme="light"] {
+    --ink:#f4f7f4; --panel:#ffffff; --panel2:#edf2ed;
+    --line:#c4d8c4; --line2:#d8e8d8;
+    --bone:#101f10; --mut:#3a5a3a; --faint:#507050;
+    --em:#0c6b40; --em-soft:#0e8a52; --amber:#9a4e00; --slate:#3d5a7a;
+  }
+  html[data-theme="light"] body {
+    background:
+      radial-gradient(900px 480px at 50% -260px,#c8eedd 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#c8ddf0 0%,transparent 60%),
+      var(--ink);
+  }
+  html[data-theme="light"] .leg-e .leg-p { color:#3a5472; }
+  html[data-theme="light"] .m-lbl,
+  html[data-theme="light"] .desf-t,
+  html[data-theme="light"] .xg-vals { color:#1e3830; }
+  html[data-theme="light"] .mkt-m { color:var(--em); }
+  html[data-theme="light"] .mkt-e { color:var(--slate); }
+  html[data-theme="light"] .card:hover { border-color:#90b890; }
+  html[data-theme="light"] .hchip.ok .hchip-pct { color:#0a5535; }
+  html[data-theme="light"] .dna-flag { background:rgba(11,107,69,.10); border-color:rgba(11,107,69,.3); color:#0a4a30; }
+  html[data-theme="light"] ::selection { background:var(--em); color:#fff; }
+  .theme-btn { background:none; border:1px solid var(--line); border-radius:999px;
+    color:var(--mut); cursor:pointer; font-size:15px; padding:9px 11px; line-height:1;
+    transition:border-color .15s,color .15s; font-family:'IBM Plex Mono',monospace; }
+  .theme-btn:hover { border-color:var(--em); color:var(--bone); }
+  .theme-btn:focus-visible { outline:2px solid var(--em); outline-offset:3px; }
 </style>
+<script>(function(){var t=localStorage.getItem('pfc-theme')||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}());</script>
 </head>
 <body>
   <a href="#main" class="skip-link">Pular para conteúdo principal</a>
   <header>
     <h1>📊 Tendências</h1>
     <div class="sub">Leitura dos jogos já disputados — o scout do Cérebro, por liga</div>
-    <div class="ts">xG · regressão à média · atualizado 30/06/2026 11:07</div>
-    <nav class="nav" aria-label="Navegação principal"><a class="" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="on" href="tendencias.html" aria-current="page">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a></nav>
+    <div class="ts">xG · regressão à média · atualizado 30/06/2026 12:40</div>
+    <nav class="nav" aria-label="Navegação principal"><a class="" href="index.html">⚽ Jogos</a><a class="" href="dicas.html">💡 Dicas</a><a class="on" href="tendencias.html" aria-current="page">📊 Tendências</a><a class="" href="historico.html">📅 Histórico</a><button class="theme-btn" id="theme-btn" aria-label="Mudar para tema claro">☀️</button></nav>
     <div class="nota">Como ler: <b>xG</b> mostra a qualidade real das chances. Um time <b>azarado</b>
       (marca menos que o xG) tende a melhorar; um <b>sortudo</b> (marca mais) tende a regredir.
       É assim que se acha valor — e é o que o modelo já usa pesando 60% do xG.</div>
@@ -117,5 +146,13 @@
         <details class="padroes"><summary>🧬 Padrões de cada time (20) — clique para abrir</summary><div class="dna-grid"><div class="dna-card"><div class="dna-top"><b>Vila Nova</b><span class="dna-rec">8V 4E 3D</span></div><div class="dna-stats">⚔️ 1.53 · xG 1.08 · 🛡️ 1.13 · O2.5 47% · BTTS 60% · CS 27%</div><div class="dna-flags"><span class="dna-flag">🎲 Sortudo (+0.46 vs xG)</span></div></div><div class="dna-card"><div class="dna-top"><b>Criciúma</b><span class="dna-rec">7V 6E 2D</span></div><div class="dna-stats">⚔️ 1.13 · xG 1.29 · 🛡️ 0.73 · O2.5 20% · BTTS 53% · CS 40%</div><div class="dna-flags"><span class="dna-flag">🧱 Under (80%)</span><span class="dna-flag">🔒 Muralha (CS 40%)</span><span class="dna-flag">⚖️ Empata muito (40%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Novorizontino</b><span class="dna-rec">7V 6E 2D</span></div><div class="dna-stats">⚔️ 1.60 · xG 1.44 · 🛡️ 0.93 · O2.5 53% · BTTS 53% · CS 40%</div><div class="dna-flags"><span class="dna-flag">🔒 Muralha (CS 40%)</span><span class="dna-flag">⚖️ Empata muito (40%)</span></div></div><div class="dna-card"><div class="dna-top"><b>São Bernardo-SP</b><span class="dna-rec">7V 4E 4D</span></div><div class="dna-stats">⚔️ 1.33 · xG 1.19 · 🛡️ 0.80 · O2.5 40% · BTTS 47% · CS 33%</div><div class="dna-flags dim">sem padrão marcante</div></div><div class="dna-card"><div class="dna-top"><b>Operário-PR</b><span class="dna-rec">7V 4E 4D</span></div><div class="dna-stats">⚔️ 1.27 · xG 1.20 · 🛡️ 1.13 · O2.5 60% · BTTS 47% · CS 47%</div><div class="dna-flags"><span class="dna-flag">🔥 Over (60% dos jogos)</span><span class="dna-flag">🔒 Muralha (CS 47%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Fortaleza</b><span class="dna-rec">7V 4E 4D</span></div><div class="dna-stats">⚔️ 1.20 · xG 1.20 · 🛡️ 1.07 · O2.5 53% · BTTS 40% · CS 40%</div><div class="dna-flags"><span class="dna-flag">🔒 Muralha (CS 40%)</span><span class="dna-flag">😶 Apagado (40% sem marcar)</span><span class="dna-flag">🏰 Casa-dependente (71% casa / 25% fora)</span></div></div><div class="dna-card"><div class="dna-top"><b>Sport Recife</b><span class="dna-rec">6V 7E 2D</span></div><div class="dna-stats">⚔️ 1.20 · xG 1.52 · 🛡️ 0.73 · O2.5 33% · BTTS 53% · CS 47%</div><div class="dna-flags"><span class="dna-flag">🔒 Muralha (CS 47%)</span><span class="dna-flag">🍀 Azarado (-0.32 vs xG)</span><span class="dna-flag">⚖️ Empata muito (47%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Juventude</b><span class="dna-rec">7V 4E 4D</span></div><div class="dna-stats">⚔️ 1.07 · xG 1.10 · 🛡️ 0.53 · O2.5 27% · BTTS 20% · CS 67%</div><div class="dna-flags"><span class="dna-flag">🧱 Under (73%)</span><span class="dna-flag">🔒 Muralha (CS 67%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Athletic Club</b><span class="dna-rec">5V 7E 3D</span></div><div class="dna-stats">⚔️ 1.07 · xG 0.99 · 🛡️ 1.00 · O2.5 27% · BTTS 67% · CS 20%</div><div class="dna-flags"><span class="dna-flag">🧱 Under (73%)</span><span class="dna-flag">🤝 Ambas marcam (67%)</span><span class="dna-flag">⚖️ Empata muito (47%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Atlético-GO</b><span class="dna-rec">5V 6E 4D</span></div><div class="dna-stats">⚔️ 1.20 · xG 1.87 · 🛡️ 1.07 · O2.5 40% · BTTS 67% · CS 20%</div><div class="dna-flags"><span class="dna-flag">🤝 Ambas marcam (67%)</span><span class="dna-flag">🍀 Azarado (-0.67 vs xG)</span><span class="dna-flag">⚖️ Empata muito (40%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Goiás</b><span class="dna-rec">6V 3E 6D</span></div><div class="dna-stats">⚔️ 0.93 · xG 1.28 · 🛡️ 1.40 · O2.5 33% · BTTS 33% · CS 33%</div><div class="dna-flags"><span class="dna-flag">🍀 Azarado (-0.35 vs xG)</span></div></div><div class="dna-card"><div class="dna-top"><b>Cuiabá</b><span class="dna-rec">4V 8E 3D</span></div><div class="dna-stats">⚔️ 0.73 · xG 0.94 · 🛡️ 0.60 · O2.5 13% · BTTS 27% · CS 53%</div><div class="dna-flags"><span class="dna-flag">🧱 Under (87%)</span><span class="dna-flag">🔒 Muralha (CS 53%)</span><span class="dna-flag">😶 Apagado (53% sem marcar)</span><span class="dna-flag">⚖️ Empata muito (53%)</span></div></div><div class="dna-card"><div class="dna-top"><b>Náutico</b><span class="dna-rec">6V 2E 7D</span></div><div class="dna-stats">⚔️ 1.40 · xG 1.49 · 🛡️ 1.27 · O2.5 40% · BTTS 33% · CS 27%</div><div class="dna-flags"><span class="dna-flag">😶 Apagado (40% sem marcar)</span></div></div><div class="dna-card"><div class="dna-top"><b>Ceará</b><span class="dna-rec">4V 5E 6D</span></div><div class="dna-stats">⚔️ 1.00 · xG 1.14 · 🛡️ 1.20 · O2.5 33% · BTTS 53% · CS 20%</div><div class="dna-flags dim">sem padrão marcante</div></div><div class="dna-card"><div class="dna-top"><b>CRB</b><span class="dna-rec">4V 4E 6D</span></div><div class="dna-stats">⚔️ 1.64 · xG 1.23 · 🛡️ 1.71 · O2.5 64% · BTTS 71% · CS 7%</div><div class="dna-flags"><span class="dna-flag">🔥 Over (64% dos jogos)</span><span class="dna-flag">🤝 Ambas marcam (71%)</span><span class="dna-flag">🎲 Sortudo (+0.42 vs xG)</span><span class="dna-flag">🟨 Faltoso (3.6/jogo)</span></div></div><div class="dna-card"><div class="dna-top"><b>Botafogo-SP</b><span class="dna-rec">4V 4E 6D</span></div><div class="dna-stats">⚔️ 1.00 · xG 1.10 · 🛡️ 0.93 · O2.5 36% · BTTS 50% · CS 21%</div><div class="dna-flags"><span class="dna-flag">😶 Apagado (36% sem marcar)</span></div></div><div class="dna-card"><div class="dna-top"><b>Londrina</b><span class="dna-rec">4V 3E 8D</span></div><div class="dna-stats">⚔️ 1.27 · xG 0.90 · 🛡️ 1.60 · O2.5 67% · BTTS 53% · CS 13%</div><div class="dna-flags"><span class="dna-flag">🔥 Over (67% dos jogos)</span><span class="dna-flag">😶 Apagado (40% sem marcar)</span><span class="dna-flag">🎲 Sortudo (+0.37 vs xG)</span></div></div><div class="dna-card"><div class="dna-top"><b>Avaí</b><span class="dna-rec">3V 4E 8D</span></div><div class="dna-stats">⚔️ 1.00 · xG 0.82 · 🛡️ 1.40 · O2.5 47% · BTTS 47% · CS 33%</div><div class="dna-flags dim">sem padrão marcante</div></div><div class="dna-card"><div class="dna-top"><b>Ponte Preta</b><span class="dna-rec">2V 2E 11D</span></div><div class="dna-stats">⚔️ 0.67 · xG 1.02 · 🛡️ 1.93 · O2.5 53% · BTTS 47% · CS 13%</div><div class="dna-flags"><span class="dna-flag">😶 Apagado (47% sem marcar)</span><span class="dna-flag">🍀 Azarado (-0.35 vs xG)</span></div></div><div class="dna-card"><div class="dna-top"><b>América-MG</b><span class="dna-rec">1V 3E 11D</span></div><div class="dna-stats">⚔️ 0.67 · xG 1.06 · 🛡️ 1.73 · O2.5 60% · BTTS 47% · CS 13%</div><div class="dna-flags"><span class="dna-flag">🔥 Over (60% dos jogos)</span><span class="dna-flag">😶 Apagado (47% sem marcar)</span><span class="dna-flag">🍀 Azarado (-0.39 vs xG)</span></div></div></div></details>
       </section></main>
   <footer><b>Probabilidades FC</b> · tendências dos jogos já disputados · dados do 365scores</footer>
-</body>
+<script>
+(function(){
+  var btn=document.getElementById('theme-btn');
+  var root=document.documentElement;
+  function sync(){var d=root.getAttribute('data-theme')!=='light';btn.textContent=d?'☀️':'🌙';btn.setAttribute('aria-label',d?'Mudar para tema claro':'Mudar para tema escuro');}
+  btn.addEventListener('click',function(){var t=root.getAttribute('data-theme')==='light'?'dark':'light';root.setAttribute('data-theme',t);localStorage.setItem('pfc-theme',t);sync();});
+  sync();
+}());
+</script></body>
 </html>
