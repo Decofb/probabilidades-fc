@@ -228,6 +228,22 @@ def aplicar_elo_copa(times: dict) -> dict:
     return resultado
 
 
+def lam_elo_copa(
+    mandante,  # EstatisticasTime
+    visitante,  # EstatisticasTime
+    media_liga: float,
+) -> tuple[float, float]:
+    """
+    λ baseado PURAMENTE no ELO — sem depender de dados de jogos.
+    Usado no ensemble Copa: blend com Poisson conforme mais jogos acontecem.
+    Fórmula: λ_m = media * sqrt(elo_m / elo_v)   (neutraliza campo)
+    """
+    elo_m = max(mandante.forca_elo, 0.5)
+    elo_v = max(visitante.forca_elo, 0.5)
+    ratio = (elo_m / elo_v) ** 0.5
+    return media_liga * ratio, media_liga / ratio
+
+
 # ── CLI de diagnóstico ────────────────────────────────────────────────────────
 
 if __name__ == "__main__":

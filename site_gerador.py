@@ -25,7 +25,56 @@ def _nav(ativo: str) -> str:
         + (f' aria-current="page"' if k == ativo else '')
         + f'>{txt}</a>'
         for href, txt, k in itens)
-    return f'<nav class="nav" aria-label="Navegação principal">{links}</nav>'
+    btn = '<button class="theme-btn" id="theme-btn" aria-label="Mudar para tema claro">☀️</button>'
+    return f'<nav class="nav" aria-label="Navegação principal">{links}{btn}</nav>'
+
+
+def _theme_css() -> str:
+    return """
+  html[data-theme="light"] {
+    --ink:#f4f7f4; --panel:#ffffff; --panel2:#edf2ed;
+    --line:#c4d8c4; --line2:#d8e8d8;
+    --bone:#101f10; --mut:#3a5a3a; --faint:#507050;
+    --em:#0c6b40; --em-soft:#0e8a52; --amber:#9a4e00; --slate:#3d5a7a;
+  }
+  html[data-theme="light"] body {
+    background:
+      radial-gradient(900px 480px at 50% -260px,#c8eedd 0%,transparent 62%),
+      radial-gradient(720px 420px at 100% -80px,#c8ddf0 0%,transparent 60%),
+      var(--ink);
+  }
+  html[data-theme="light"] .leg-e .leg-p { color:#3a5472; }
+  html[data-theme="light"] .m-lbl,
+  html[data-theme="light"] .desf-t,
+  html[data-theme="light"] .xg-vals { color:#1e3830; }
+  html[data-theme="light"] .mkt-m { color:var(--em); }
+  html[data-theme="light"] .mkt-e { color:var(--slate); }
+  html[data-theme="light"] .card:hover { border-color:#90b890; }
+  html[data-theme="light"] .hchip.ok .hchip-pct { color:#0a5535; }
+  html[data-theme="light"] .dna-flag { background:rgba(11,107,69,.10); border-color:rgba(11,107,69,.3); color:#0a4a30; }
+  html[data-theme="light"] ::selection { background:var(--em); color:#fff; }
+  .theme-btn { background:none; border:1px solid var(--line); border-radius:999px;
+    color:var(--mut); cursor:pointer; font-size:15px; padding:9px 11px; line-height:1;
+    transition:border-color .15s,color .15s; font-family:'IBM Plex Mono',monospace; }
+  .theme-btn:hover { border-color:var(--em); color:var(--bone); }
+  .theme-btn:focus-visible { outline:2px solid var(--em); outline-offset:3px; }
+"""
+
+
+def _theme_head_script() -> str:
+    return "<script>(function(){var t=localStorage.getItem('pfc-theme')||(matchMedia('(prefers-color-scheme:light)').matches?'light':'dark');if(t==='light')document.documentElement.setAttribute('data-theme','light');}());</script>"
+
+
+def _theme_body_script() -> str:
+    return """<script>
+(function(){
+  var btn=document.getElementById('theme-btn');
+  var root=document.documentElement;
+  function sync(){var d=root.getAttribute('data-theme')!=='light';btn.textContent=d?'☀️':'\U0001f319';btn.setAttribute('aria-label',d?'Mudar para tema claro':'Mudar para tema escuro');}
+  btn.addEventListener('click',function(){var t=root.getAttribute('data-theme')==='light'?'dark':'light';root.setAttribute('data-theme',t);localStorage.setItem('pfc-theme',t);sync();});
+  sync();
+}());
+</script>"""
 
 
 def _tom(pct: int) -> str:
@@ -419,7 +468,8 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
 
   @keyframes grow {{ from {{ width:0; }} to {{ width:var(--w); }} }}
   @media(prefers-reduced-motion:reduce) {{ .seg, .m-track .fill {{ animation:none; }} }}
-</style>
+{_theme_css()}</style>
+{_theme_head_script()}
 </head>
 <body>
   <a href="#main" class="skip-link">Pular para conteúdo principal</a>
@@ -439,7 +489,7 @@ def gerar_site(grupos_data: list[tuple[str, str, list[str]]], data_geracao: str,
   <main id="main">{secoes}</main>
   <div class="placar-cerebro">{html.escape(placar)}</div>
   <footer><b>Probabilidades FC</b> · modelo Poisson + Dixon-Coles · dados do 365scores</footer>
-</body>
+{_theme_body_script()}</body>
 </html>"""
 
     destino = PASTA_SITE / "index.html"
@@ -617,7 +667,8 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
   footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
   footer b {{ color:var(--em); }}
-</style>
+{_theme_css()}</style>
+{_theme_head_script()}
 </head>
 <body>
   <a href="#main" class="skip-link">Pular para conteúdo principal</a>
@@ -632,7 +683,7 @@ def gerar_tendencias(trends: list[dict], data_geracao: str) -> Path:
   </header>
   <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · tendências dos jogos já disputados · dados do 365scores</footer>
-</body>
+{_theme_body_script()}</body>
 </html>"""
     destino = PASTA_SITE / "tendencias.html"
     destino.write_text(doc, encoding="utf-8")
@@ -766,7 +817,8 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
   footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
   footer b {{ color:var(--em); }}
-</style>
+{_theme_css()}</style>
+{_theme_head_script()}
 </head>
 <body>
   <a href="#main" class="skip-link">Pular para conteúdo principal</a>
@@ -781,7 +833,7 @@ def gerar_dicas_html(grupos_data, data_geracao: str) -> Path:
   </header>
   <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · dicas pelo modelo + padrões · sem odds</footer>
-</body>
+{_theme_body_script()}</body>
 </html>"""
     destino = PASTA_SITE / "dicas.html"
     destino.write_text(doc, encoding="utf-8")
@@ -919,7 +971,8 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
   footer {{ text-align:center; color:var(--faint); font-size:10px; padding:24px 16px;
     font-family:'IBM Plex Mono',monospace; letter-spacing:.4px; }}
   footer b {{ color:var(--em); }}
-</style>
+{_theme_css()}</style>
+{_theme_head_script()}
 </head>
 <body>
   <a href="#main" class="skip-link">Pular para conteúdo principal</a>
@@ -932,7 +985,7 @@ def gerar_historico_html(grupos_data, data_geracao: str, resumo=None) -> Path:
   </header>
   <main id="main">{secoes}</main>
   <footer><b>Probabilidades FC</b> · histórico real · sem odds</footer>
-</body>
+{_theme_body_script()}</body>
 </html>"""
     destino = PASTA_SITE / "historico.html"
     destino.write_text(doc, encoding="utf-8")

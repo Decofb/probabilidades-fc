@@ -26,9 +26,13 @@ from dataclasses import replace as _dc_replace
 
 from config import LIGAS, PASTA_SITE, parametros_da_liga, janela_liga
 from dados.scores365 import (COMPETICOES_365, coletar_estatisticas,
-                             coletar_jogos_futuros, medias_liga)
+                             coletar_jogos_futuros, medias_liga,
+                             coletar_jogos_brutos_srs)
 from dados.desfalques import coletar_desfalques, desfalques_do_jogo
 from dados.fifa_elo import aplicar_elo_copa
+from motor.srs import calcular_srs, aplicar_srs
+from motor.calibrar import (calibrar_rho_de_jogos_brutos, salvar_rho, carregar_rho,
+                             treinar_platt, aplicar_platt, salvar_platt, carregar_platt)
 from dados.fonte import salvar_times_csv, carregar_times_csv
 from dados.jogos import salvar_jogos_csv, carregar_jogos_csv
 from dados.registro import registrar, id_jogo
@@ -252,6 +256,34 @@ def main(offline: bool = False) -> int:
             except Exception as e:
                 print(f"  [ELO FIFA falhou: {type(e).__name__}]")
 
+        # Melhoria 1: SRS (ratings ajustados por qualidade do adversário)
+        # Melhoria 4: rho Dixon-Coles calibrado por MLE nos dados reais
+        rho_liga = carregar_rho(liga_key)   # default -0.06 se não há cache
+        jogos_brutos: list = []
+        if online_ok and COMPETICOES_365.get(liga_key):
+            try:
+                d1_srs, _ = janela_liga(liga_key, hoje_date=hoje)
+                d2_srs = hoje.strftime("%d/%m/%Y")
+                jogos_brutos = coletar_jogos_brutos_srs(COMPETICOES_365[liga_key], d1_srs, d2_srs)
+                if jogos_brutos:
+                    media_total_srs = (liga_params.media_gols_mandante + liga_params.media_gols_visitante) / 2
+                    srs = calcular_srs(jogos_brutos)
+                    times = aplicar_srs(times, srs, media_total_srs)
+                    print(f"  [SRS] ratings calculados para {len(srs)} times ({len(jogos_brutos)} jogos)")
+                    rho_novo = calibrar_rho_de_jogos_brutos(
+                        jogos_brutos,
+                        liga_params.media_gols_mandante,
+                        liga_params.media_gols_visitante,
+                    )
+                    salvar_rho(liga_key, rho_novo)
+                    rho_liga = rho_novo
+                    print(f"  [Rho MLE] rho={rho_liga:+.4f} (padrão Dixon-Coles é -0.06)")
+            except Exception as e:
+                print(f"  [SRS/Rho falhou: {type(e).__name__}]")
+
+        # Melhoria 5: Platt scaling — carrega coeficientes calibrados (se existirem)
+        coefs_platt = carregar_platt(liga_key)  # None se insuficiente ou inexistente
+
         # Coleta desfalques (suspensos/lesionados) — só Brasileirão, falha silenciosamente
         desfal_liga: dict = {}
         if not offline and liga_key in ("brasileirao_a", "brasileirao_b"):
@@ -277,7 +309,17 @@ def main(offline: bool = False) -> int:
             mercados = calcular_mercados(
                 lam_m, lam_v, lam_escanteios=esc, lam_cartoes=cart,
                 disp_escanteios=liga_params.disp_escanteios,
-                disp_cartoes=liga_params.disp_cartoes)
+                disp_cartoes=liga_params.disp_cartoes,
+                rho=rho_liga)
+
+            # Melhoria 5: aplica calibração Platt nas probabilidades 1X2
+            if coefs_platt:
+                mercados = _dc_replace(
+                    mercados,
+                    vitoria_mandante=aplicar_platt(mercados.vitoria_mandante, coefs_platt),
+                    empate=aplicar_platt(mercados.empate, coefs_platt),
+                    vitoria_visitante=aplicar_platt(mercados.vitoria_visitante, coefs_platt),
+                )
 
             # Odds do mercado para este jogo (fuzzy match)
             mkt_jogo = None
@@ -314,6 +356,20 @@ def main(offline: bool = False) -> int:
     if not offline and previsoes_log:
         n = registrar(previsoes_log)
         print(f"[log: {n} previsoes de hoje registradas]\n")
+
+    # Melhoria 5: treina / atualiza Platt scaling por liga com jogos já conferidos
+    if not offline:
+        try:
+            from dados.registro import conferidos
+            todos_conf = conferidos()
+            for lk in LIGAS:
+                reg_lk = [r for r in todos_conf if r.get("liga") == lk]
+                coefs = treinar_platt(reg_lk)
+                if coefs:
+                    salvar_platt(lk, coefs)
+                    print(f"[Platt {lk}] calibrado (a={coefs['a']:.3f}, b={coefs['b']:.3f})")
+        except Exception as e:
+            print(f"[Platt treino falhou: {type(e).__name__}]")
 
     # monta os grupos por data, em ordem cronologica, com rotulo HOJE/AMANHÃ
     grupos = []

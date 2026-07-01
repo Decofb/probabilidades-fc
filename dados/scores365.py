@@ -20,6 +20,8 @@ from __future__ import annotations
 
 import sys
 import time
+from datetime import datetime, timezone
+from math import exp
 from pathlib import Path
 
 import requests
@@ -129,14 +131,55 @@ def _janelas(d1: str, d2: str, passo_dias: int = 25):
         atual = prox + timedelta(days=1)
 
 
+# Decaimento temporal: jogo de 100 dias atrás vale exp(-0.007*100) ≈ 50%
+_LAMBDA_DECAY = 0.007
+_AGORA_UTC = datetime.now(timezone.utc)
+
+
+def _peso_temporal(start_time_str: str) -> float:
+    """Peso de decaimento exponencial baseado na data do jogo."""
+    try:
+        dt = datetime.fromisoformat(start_time_str.replace("Z", "+00:00"))
+        dias = max(0, (_AGORA_UTC - dt).days)
+        return exp(-_LAMBDA_DECAY * dias)
+    except Exception:
+        return 0.5  # peso neutro se data inválida
+
+
+def coletar_jogos_brutos_srs(
+    comp_id: int, d1: str, d2: str,
+    max_jogos: int = 120,
+) -> list[tuple[str, str, float, float, float]]:
+    """
+    Retorna lista de (mandante, visitante, gm, gv, peso_decay) para o SRS.
+    Não faz chamadas de stats por jogo — apenas listar_jogos (rápido).
+    """
+    vistos: dict[int, dict] = {}
+    for ja, jb in _janelas(d1, d2):
+        for g in listar_jogos(comp_id, ja, jb):
+            if _finalizado(g):
+                vistos[g["id"]] = g
+    jogos = sorted(vistos.values(), key=lambda g: g.get("startTime", ""))[-max_jogos:]
+
+    resultado = []
+    for g in jogos:
+        hc, ac = g["homeCompetitor"], g["awayCompetitor"]
+        gh = float(hc.get("score") or 0)
+        ga = float(ac.get("score") or 0)
+        peso = _peso_temporal(g.get("startTime", ""))
+        resultado.append((hc["name"], ac["name"], gh, ga, peso))
+    return resultado
+
+
 def coletar_estatisticas(comp_id: int, d1: str, d2: str,
                          max_jogos: int = 120, pausa: float = 0.15
                          ) -> dict[str, EstatisticasTime]:
     """
     Agrega, por time, as medias por jogo (gols, xG, escanteios) a partir dos
     jogos JA FINALIZADOS no periodo. Faz 1 chamada de stats por jogo.
+    Usa decaimento temporal: jogos recentes pesam mais (exp(-λ·dias)).
+    Rastreia splits casa/fora para vantagem de casa por time.
     """
-    # coleta em blocos de 25 dias e remove duplicatas por id de jogo
     vistos: dict[int, dict] = {}
     for ja, jb in _janelas(d1, d2):
         for g in listar_jogos(comp_id, ja, jb):
@@ -147,9 +190,14 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
     acc: dict[str, dict] = {}
 
     def garante(nome):
-        acc.setdefault(nome, dict(jogos=0, gf=0.0, gs=0.0, xg=0.0, xga=0.0,
-                                  ef=0.0, es=0.0, xg_n=0, esc_n=0,
-                                  cart=0.0, cart_n=0))
+        acc.setdefault(nome, dict(
+            jogos=0.0, gf=0.0, gs=0.0, xg=0.0, xga=0.0,
+            ef=0.0, es=0.0, xg_n=0.0, esc_n=0.0,
+            cart=0.0, cart_n=0.0,
+            # splits casa / fora
+            j_casa=0.0, gf_casa=0.0, gs_casa=0.0,
+            j_fora=0.0, gf_fora=0.0, gs_fora=0.0,
+        ))
         return acc[nome]
 
     def cartoes_de(st_time):
@@ -159,10 +207,11 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
             return None
         return (am or 0) + (ver or 0)
 
-    for i, g in enumerate(jogos):
+    for g in jogos:
         hc, ac = g["homeCompetitor"], g["awayCompetitor"]
         nome_h, nome_a = hc["name"], ac["name"]
         gh, ga = float(hc["score"]), float(ac["score"])
+        peso = _peso_temporal(g.get("startTime", ""))
 
         try:
             st = stats_partida(g["id"])
@@ -176,37 +225,58 @@ def coletar_estatisticas(comp_id: int, d1: str, d2: str,
         ef_a = st.get(ac["id"], {}).get(STAT_ESCANTEIOS)
 
         H, A = garante(nome_h), garante(nome_a)
-        H["jogos"] += 1; A["jogos"] += 1
-        H["gf"] += gh; H["gs"] += ga
-        A["gf"] += ga; A["gs"] += gh
+
+        # Estatísticas globais ponderadas por tempo
+        H["jogos"] += peso;   A["jogos"] += peso
+        H["gf"] += gh * peso; H["gs"] += ga * peso
+        A["gf"] += ga * peso; A["gs"] += gh * peso
+
+        # Splits casa / fora
+        H["j_casa"]  += peso; H["gf_casa"] += gh * peso; H["gs_casa"] += ga * peso
+        A["j_fora"]  += peso; A["gf_fora"] += ga * peso; A["gs_fora"] += gh * peso
+
         if xg_h is not None and xg_a is not None:
-            H["xg"] += xg_h; H["xga"] += xg_a; H["xg_n"] += 1
-            A["xg"] += xg_a; A["xga"] += xg_h; A["xg_n"] += 1
+            H["xg"] += xg_h * peso; H["xga"] += xg_a * peso; H["xg_n"] += peso
+            A["xg"] += xg_a * peso; A["xga"] += xg_h * peso; A["xg_n"] += peso
         if ef_h is not None and ef_a is not None:
-            H["ef"] += ef_h; H["es"] += ef_a; H["esc_n"] += 1
-            A["ef"] += ef_a; A["es"] += ef_h; A["esc_n"] += 1
+            H["ef"] += ef_h * peso; H["es"] += ef_a * peso; H["esc_n"] += peso
+            A["ef"] += ef_a * peso; A["es"] += ef_h * peso; A["esc_n"] += peso
 
         cart_h = cartoes_de(st.get(hc["id"], {}))
         cart_a = cartoes_de(st.get(ac["id"], {}))
         if cart_h is not None:
-            H["cart"] += cart_h; H["cart_n"] += 1
+            H["cart"] += cart_h * peso; H["cart_n"] += peso
         if cart_a is not None:
-            A["cart"] += cart_a; A["cart_n"] += 1
+            A["cart"] += cart_a * peso; A["cart_n"] += peso
 
     times: dict[str, EstatisticasTime] = {}
     for nome, a in acc.items():
         j = a["jogos"]
-        if j == 0:
+        if j < 0.1:
             continue
+
+        # Casa / fora: só preenche se tiver dados suficientes
+        gf_casa = a["gf_casa"] / a["j_casa"] if a["j_casa"] >= 0.5 else None
+        gs_casa = a["gs_casa"] / a["j_casa"] if a["j_casa"] >= 0.5 else None
+        gf_fora = a["gf_fora"] / a["j_fora"] if a["j_fora"] >= 0.5 else None
+        gs_fora = a["gs_fora"] / a["j_fora"] if a["j_fora"] >= 0.5 else None
+
         times[nome] = EstatisticasTime(
-            nome=nome, jogos=j,
+            nome=nome,
+            jogos=round(j),
             gols_feitos_por_jogo=a["gf"] / j,
             gols_sofridos_por_jogo=a["gs"] / j,
-            xg_por_jogo=(a["xg"] / a["xg_n"]) if a["xg_n"] else None,
-            xga_por_jogo=(a["xga"] / a["xg_n"]) if a["xg_n"] else None,
-            escanteios_feitos_por_jogo=(a["ef"] / a["esc_n"]) if a["esc_n"] else None,
-            escanteios_sofridos_por_jogo=(a["es"] / a["esc_n"]) if a["esc_n"] else None,
-            cartoes_por_jogo=(a["cart"] / a["cart_n"]) if a["cart_n"] else None,
+            xg_por_jogo=(a["xg"] / a["xg_n"]) if a["xg_n"] > 0.1 else None,
+            xga_por_jogo=(a["xga"] / a["xg_n"]) if a["xg_n"] > 0.1 else None,
+            escanteios_feitos_por_jogo=(a["ef"] / a["esc_n"]) if a["esc_n"] > 0.1 else None,
+            escanteios_sofridos_por_jogo=(a["es"] / a["esc_n"]) if a["esc_n"] > 0.1 else None,
+            cartoes_por_jogo=(a["cart"] / a["cart_n"]) if a["cart_n"] > 0.1 else None,
+            gols_feitos_casa_por_jogo=gf_casa,
+            gols_sofridos_casa_por_jogo=gs_casa,
+            jogos_casa=round(a["j_casa"]),
+            gols_feitos_fora_por_jogo=gf_fora,
+            gols_sofridos_fora_por_jogo=gs_fora,
+            jogos_fora=round(a["j_fora"]),
         )
     return times
 

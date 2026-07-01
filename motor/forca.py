@@ -34,8 +34,14 @@ class EstatisticasTime:
     escanteios_sofridos_por_jogo: float | None = None
     cartoes_por_jogo: float | None = None   # cartoes (amarelo+vermelho) recebidos por jogo
     # Força relativa via ranking FIFA/ELO (1.0 = time médio da competição).
-    # Usado como prior bayesiano para Copa do Mundo (amostra pequena + adversários incomparáveis).
     forca_elo: float = 1.0
+    # Splits casa / fora — preenchidos pelo scores365 com time decay (melhoria 3)
+    gols_feitos_casa_por_jogo: float | None = None
+    gols_sofridos_casa_por_jogo: float | None = None
+    jogos_casa: int = 0
+    gols_feitos_fora_por_jogo: float | None = None
+    gols_sofridos_fora_por_jogo: float | None = None
+    jogos_fora: int = 0
 
     def ataque_efetivo(self, peso_xg: float = 0.6) -> float:
         """Combina gols reais e xG (peso_xg = quanto o xG pesa, por ser mais estavel)."""
@@ -91,24 +97,84 @@ def _encolher(valor: float, n: int | None, prior: float, k: float) -> float:
     return (n * valor + k * prior) / (n + k)
 
 
+_MIN_JOGOS_CASA_FORA = 4  # mínimo para usar split casa/fora
+
+
+def _ataque_fora(t: "EstatisticasTime", w: float) -> float:
+    """Ataque do time jogando FORA de casa (visitante)."""
+    if t.gols_feitos_fora_por_jogo is not None and t.jogos_fora >= _MIN_JOGOS_CASA_FORA:
+        if t.xg_por_jogo is not None:
+            # Aproximação: escala o xG pela proporção casa/fora em gols reais
+            ratio = (t.gols_feitos_fora_por_jogo / max(t.gols_feitos_por_jogo, 0.1))
+            xg_fora = t.xg_por_jogo * ratio
+            return (1 - w) * t.gols_feitos_fora_por_jogo + w * xg_fora
+        return t.gols_feitos_fora_por_jogo
+    return t.ataque_efetivo(w)
+
+
+def _defesa_fora(t: "EstatisticasTime", w: float) -> float:
+    """Defesa do time jogando FORA (gols sofridos como visitante)."""
+    if t.gols_sofridos_fora_por_jogo is not None and t.jogos_fora >= _MIN_JOGOS_CASA_FORA:
+        if t.xga_por_jogo is not None:
+            ratio = (t.gols_sofridos_fora_por_jogo / max(t.gols_sofridos_por_jogo, 0.1))
+            xga_fora = t.xga_por_jogo * ratio
+            return (1 - w) * t.gols_sofridos_fora_por_jogo + w * xga_fora
+        return t.gols_sofridos_fora_por_jogo
+    return t.defesa_efetiva(w)
+
+
+def _ataque_casa(t: "EstatisticasTime", w: float) -> float:
+    """Ataque do time jogando EM CASA."""
+    if t.gols_feitos_casa_por_jogo is not None and t.jogos_casa >= _MIN_JOGOS_CASA_FORA:
+        if t.xg_por_jogo is not None:
+            ratio = (t.gols_feitos_casa_por_jogo / max(t.gols_feitos_por_jogo, 0.1))
+            xg_casa = t.xg_por_jogo * ratio
+            return (1 - w) * t.gols_feitos_casa_por_jogo + w * xg_casa
+        return t.gols_feitos_casa_por_jogo
+    return t.ataque_efetivo(w)
+
+
+def _defesa_casa(t: "EstatisticasTime", w: float) -> float:
+    """Defesa do time jogando EM CASA (gols sofridos como mandante)."""
+    if t.gols_sofridos_casa_por_jogo is not None and t.jogos_casa >= _MIN_JOGOS_CASA_FORA:
+        if t.xga_por_jogo is not None:
+            ratio = (t.gols_sofridos_casa_por_jogo / max(t.gols_sofridos_por_jogo, 0.1))
+            xga_casa = t.xga_por_jogo * ratio
+            return (1 - w) * t.gols_sofridos_casa_por_jogo + w * xga_casa
+        return t.gols_sofridos_casa_por_jogo
+    return t.defesa_efetiva(w)
+
+
 def gols_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
                    liga: ParametrosLiga) -> tuple[float, float]:
     """Devolve (lambda_mandante, lambda_visitante)."""
     media_mand, media_vis = liga.medias_gol()
     media_total = (media_mand + media_vis) / 2
     k = liga.peso_prior
-
-    # shrinkage: ataque/defesa de cada time regridem para o prior da liga.
-    # forca_elo ajusta o prior individualmente: times fortes (ELO > 1) têm prior
-    # de ataque maior e prior de defesa menor — captura qualidade real quando há
-    # poucos jogos (Copa do Mundo, início de temporada). No Brasileirão forca_elo=1.0
-    # para todos, então o comportamento é idêntico ao original.
     w = liga.peso_xg
     elo_m, elo_v = mandante.forca_elo, visitante.forca_elo
-    atk_m = _encolher(mandante.ataque_efetivo(w), mandante.jogos, media_total * elo_m, k)
-    def_m = _encolher(mandante.defesa_efetiva(w), mandante.jogos, media_total / elo_m, k)
-    atk_v = _encolher(visitante.ataque_efetivo(w), visitante.jogos, media_total * elo_v, k)
-    def_v = _encolher(visitante.defesa_efetiva(w), visitante.jogos, media_total / elo_v, k)
+
+    if liga.campo_neutro:
+        # Copa: sem distinção casa/fora; usa estatísticas globais
+        raw_atk_m = mandante.ataque_efetivo(w)
+        raw_def_m = mandante.defesa_efetiva(w)
+        raw_atk_v = visitante.ataque_efetivo(w)
+        raw_def_v = visitante.defesa_efetiva(w)
+        n_m, n_v = mandante.jogos, visitante.jogos
+    else:
+        # Brasileirão: usa split casa (mandante) / fora (visitante) — melhoria 3
+        raw_atk_m = _ataque_casa(mandante, w)
+        raw_def_m = _defesa_casa(mandante, w)
+        raw_atk_v = _ataque_fora(visitante, w)
+        raw_def_v = _defesa_fora(visitante, w)
+        n_m = max(mandante.jogos_casa, 1) if mandante.jogos_casa >= _MIN_JOGOS_CASA_FORA else mandante.jogos
+        n_v = max(visitante.jogos_fora, 1) if visitante.jogos_fora >= _MIN_JOGOS_CASA_FORA else visitante.jogos
+
+    # shrinkage bayesiano com prior ajustado por ELO (atacar mais / sofrer menos)
+    atk_m = _encolher(raw_atk_m, n_m, media_total * elo_m, k)
+    def_m = _encolher(raw_def_m, n_m, media_total / elo_m, k)
+    atk_v = _encolher(raw_atk_v, n_v, media_total * elo_v, k)
+    def_v = _encolher(raw_def_v, n_v, media_total / elo_v, k)
 
     ataque_m, defesa_m = atk_m / media_total, def_m / media_total
     ataque_v, defesa_v = atk_v / media_total, def_v / media_total
@@ -116,7 +182,6 @@ def gols_esperados(mandante: EstatisticasTime, visitante: EstatisticasTime,
     lam_m = media_mand * ataque_m * defesa_v
     lam_v = media_vis * ataque_v * defesa_m
 
-    # ultima rede de seguranca (nao deve mais ser atingida com shrinkage)
     lam_m = max(0.15, min(lam_m, 5.0))
     lam_v = max(0.15, min(lam_v, 5.0))
     return lam_m, lam_v
