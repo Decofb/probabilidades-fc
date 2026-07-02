@@ -1,7 +1,4 @@
 data,hora,mandante,visitante,rodada
-2026-07-01,13:00,Inglaterra,RD Congo,Rodada
-2026-07-01,17:00,Bélgica,Senegal,Rodada
-2026-07-01,21:00,EUA,Bósnia e Herzegovina,Rodada
 2026-07-02,16:00,Espanha,Áustria,Rodada
 2026-07-02,20:00,Portugal,Croácia,Rodada
 2026-07-03,00:00,Suíça,Argélia,Rodada
@@ -10,3 +7,5 @@ data,hora,mandante,visitante,rodada
 2026-07-03,22:30,Colômbia,Gana,Rodada
 2026-07-04,14:00,Canadá,Marrocos,Rodada
 2026-07-04,18:00,Paraguai,França,Rodada
+2026-07-05,17:00,Brasil,Noruega,Rodada
+2026-07-05,21:00,México,Inglaterra,Rodada
